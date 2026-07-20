@@ -477,7 +477,9 @@ function taoGasRun_(apiUrl) {
         if (prop === 'withSuccessHandler') return (fn) => build({ ...state, onSuccess: fn });
         if (prop === 'withFailureHandler') return (fn) => build({ ...state, onFailure: fn });
         return (...args) => {
-          fetch(apiUrl, { method: 'POST', body: JSON.stringify({ fn: prop, args }) })
+          return (...args) => {
+          const url = apiUrl + '?fn=' + encodeURIComponent(prop) + '&args=' + encodeURIComponent(JSON.stringify(args));
+          fetch(url)
             .then(r => r.json())
             .then(res => {
               if (res.error) (state.onFailure || (()=>{}))({ message: res.error });
