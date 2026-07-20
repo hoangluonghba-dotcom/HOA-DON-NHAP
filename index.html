@@ -469,6 +469,28 @@
   </div>
 
   <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwPtQ4tvkQbxoVuyX1nSJJIZWU8aHS8jEkBV5qdr8_6ArAL9eQAb2609AUps0ydUg_Gdw/exec';
+function taoGasRun_(apiUrl) {
+  function build(state) {
+    return new Proxy({}, {
+      get(_, prop) {
+        if (prop === 'withSuccessHandler') return (fn) => build({ ...state, onSuccess: fn });
+        if (prop === 'withFailureHandler') return (fn) => build({ ...state, onFailure: fn });
+        return (...args) => {
+          fetch(apiUrl, { method: 'POST', body: JSON.stringify({ fn: prop, args }) })
+            .then(r => r.json())
+            .then(res => {
+              if (res.error) (state.onFailure || (()=>{}))({ message: res.error });
+              else (state.onSuccess || (()=>{}))(res.result);
+            })
+            .catch(err => (state.onFailure || (()=>{}))(err));
+        };
+      }
+    });
+  }
+  return build({});
+}
+window.google = { script: { run: taoGasRun_(API_URL) } };
     let tabHienTai = 'chuaXuat';
     let ketQuaHienTai = { chuaXuat: [], daXuat: [], chiPhi: [] };
     let daChon = {}; // key = index (số) trong chuaXuat, hoặc "edit_N" khi nạp lại từ hoá đơn đang sửa
