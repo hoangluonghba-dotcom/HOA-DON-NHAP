@@ -1,1 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* { box-sizing: border-box; margin:0; padding:0; }
+body { font-family: -apple-system, sans-serif; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+#frameWrap { flex:1; position:relative; background:#fff; }
+iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:none; display:none; }
+iframe.active { display:block; }
+#loading { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:14px; color:#888; background:#fff; z-index:2; }
+#tabBar { display:flex; background:#0f1f5c; }
+.tab { flex:1; text-align:center; padding:12px 4px; color:#fff; font-size:12px; font-weight:700; cursor:pointer; opacity:0.6; user-select:none; }
+.tab.active { opacity:1; border-top:3px solid #f7941d; }
+</style>
+</head>
+<body>
 
+<div id="frameWrap">
+  <div id="loading">Đang tải...</div>
+</div>
+
+<div id="tabBar">
+  <div class="tab" data-id="1" onclick="chuyen(1,this)">🧾 Hoá đơn</div>
+  <div class="tab" data-id="2" onclick="chuyen(2,this)">⚡ Check giá</div>
+  <div class="tab" data-id="3" onclick="chuyen(3,this)">💰 Chi phí</div>
+  <div class="tab active" data-id="4" onclick="chuyen(4,this)">📦 XNK 2026</div>
+</div>
+
+<script>
+const urls = {
+  1: "https://script.google.com/macros/s/AKfycbwPtQ4tvkQbxoVuyX1nSJJIZWU8aHS8jEkBV5qdr8_6ArAL9eQAb2609AUps0ydUg_Gdw/exec",
+  2: "https://script.google.com/macros/s/AKfycbyNEVN12cJ4Dbqm9fTxzVxxKGNRRx1d6trImhoq8sG7gtuHNJ8ByXE26tT-VGJx0lvEqw/exec",
+  3: "https://script.google.com/macros/s/AKfycbx3hYgvOz31LSAuih7gWl8rMfkQYccGALL_ftXLKO0J10iGJA5AdqZ9hZ9Ab5AUVVTolQ/exec",
+  4: "https://script.google.com/macros/s/AKfycbxB7pDBTg5Q8hULilXgrptpbL_s_JPguN2S2UBeDyeL_4d0d7_iQdBWhvBXW1bfgQce6w/exec"
+};
+
+const DEFAULT_TAB = 4; // XNK
+const loadedFrames = {}; // cache iframe đã tạo, không load lại
+const frameWrap = document.getElementById('frameWrap');
+const loadingEl = document.getElementById('loading');
+
+function getOrCreateFrame(id) {
+  if (loadedFrames[id]) return loadedFrames[id];
+
+  const iframe = document.createElement('iframe');
+  iframe.src = urls[id];
+  iframe.onload = function () {
+    // chỉ ẩn loading nếu đây đúng là tab đang được xem
+    if (String(frameWrap.dataset.current) === String(id)) {
+      loadingEl.style.display = 'none';
+    }
+  };
+  frameWrap.appendChild(iframe);
+  loadedFrames[id] = iframe;
+  return iframe;
+}
+
+function chuyen(id, el) {
+  // đổi trạng thái tab active
+  var tabs = document.querySelectorAll('.tab');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+  el.classList.add('active');
+
+  frameWrap.dataset.current = id;
+
+  // ẩn hết iframe hiện có
+  var frames = document.querySelectorAll('#frameWrap iframe');
+  for (var j = 0; j < frames.length; j++) frames[j].classList.remove('active');
+
+  var alreadyLoaded = !!loadedFrames[id];
+  var iframe = getOrCreateFrame(id);
+  iframe.classList.add('active');
+
+  // chỉ hiện "Đang tải..." nếu đây là lần đầu load tab này
+  loadingEl.style.display = alreadyLoaded ? 'none' : 'flex';
+}
+
+// Load tab mặc định ngay khi mở app
+window.addEventListener('DOMContentLoaded', function () {
+  chuyen(DEFAULT_TAB, document.querySelector('.tab[data-id="' + DEFAULT_TAB + '"]'));
+
+  // Sau khi tab mặc định load xong, âm thầm preload các tab còn lại lúc rảnh
+  // để khi bấm qua sẽ hiện ngay lập tức, không phải chờ cold-start
+  function preloadOthers() {
+    Object.keys(urls).forEach(function (id) {
+      if (String(id) !== String(DEFAULT_TAB)) getOrCreateFrame(id);
+    });
+  }
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(preloadOthers, { timeout: 4000 });
+  } else {
+    setTimeout(preloadOthers, 2500);
+  }
+});
+</script>
+
+</body>
+</html>
