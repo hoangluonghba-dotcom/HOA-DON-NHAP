@@ -1,1 +1,1993 @@
+<!DOCTYPE html> 
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Nam Tiến - Tra cứu & Lập hoá đơn nháp</title>
+  <style>
+    :root {
+      --brand-navy: #0f1f5c;
+      --brand-navy2: #1a2f8f;
+      --brand-blue: #1a73e8;
+      --brand-orange: #f7941d;
+      --brand-orange2: #ffb347;
+      --brand-red: #e53935;
+      --bg: #f2f4f8;
+      --card: #ffffff;
+      --text: #1a1d29;
+      --text-muted: #6b7280;
+      --border: #e8eaf0;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow: 0 2px 10px rgba(15,31,92,0.06);
+      --shadow-lg: 0 8px 24px rgba(15,31,92,0.12);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      -webkit-font-smoothing: antialiased;
+    }
 
+    /* ===== HEADER hiện đại: logo + tên thương hiệu, gradient theo màu logo ===== */
+    header {
+      background: linear-gradient(135deg, var(--brand-navy) 0%, var(--brand-navy2) 55%, #223aa8 100%);
+      color: #fff;
+      padding: 14px 16px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      box-shadow: 0 4px 16px rgba(15,31,92,0.25);
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-top img.logo {
+      width: 46px;
+      height: 46px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 5px rgba(0,0,0,0.35));
+      flex-shrink: 0;
+    }
+    .header-brand {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.15;
+    }
+    .header-brand .name {
+      font-weight: 800;
+      font-size: 17px;
+      letter-spacing: 0.5px;
+    }
+    .header-brand .tagline {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--brand-orange2);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+    .header-app-title {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.75);
+      margin-left: auto;
+      text-align: right;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #syncIndicator {
+      display: none;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--brand-orange2);
+      align-items: center;
+      gap: 4px;
+    }
+    #syncIndicator.show { display: inline-flex; }
+    #syncIndicator .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--brand-orange2);
+      animation: pulse 1s infinite;
+    }
+
+    .container { padding: 12px; max-width: 720px; margin: 0 auto; }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    label { font-size: 12.5px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px; }
+    select, input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      margin-bottom: 10px;
+      background: #fafbfc;
+      color: var(--text);
+      transition: border-color .15s ease, background .15s ease;
+      font-family: inherit;
+    }
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--brand-blue);
+      background: #fff;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 14.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .08s ease, opacity .15s ease, box-shadow .15s ease;
+      font-family: inherit;
+    }
+    button:active { transform: scale(0.97); }
+    button:disabled { opacity: 0.6; cursor: default; transform: none; }
+
+    .btn-primary { background: linear-gradient(135deg, var(--brand-blue), #1558b0); color: #fff; box-shadow: 0 3px 10px rgba(26,115,232,0.3); }
+    .btn-secondary { background: linear-gradient(135deg, #34a853, #26843f); color: #fff; margin-top: 10px; box-shadow: 0 3px 10px rgba(52,168,83,0.3); }
+    .btn-sync { background: linear-gradient(135deg, var(--brand-orange), #e07c00); color: #fff; box-shadow: 0 3px 10px rgba(247,148,29,0.3); }
+    .btn-ghost { background: #f3f4f8; color: var(--text); box-shadow: none; }
+    .btn-warn { background: linear-gradient(135deg, #e53935, #b71c1c); color: #fff; box-shadow: 0 3px 10px rgba(229,57,53,0.3); }
+
+    .tabs { display: flex; margin-bottom: 12px; gap: 6px; background: #eceef4; padding: 4px; border-radius: 12px; flex-wrap: wrap; }
+    .tab {
+      flex: 1;
+      min-width: 70px;
+      text-align: center;
+      padding: 9px 4px;
+      border-radius: 9px;
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+    .tab.active {
+      background: linear-gradient(135deg, var(--brand-navy), var(--brand-navy2));
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(15,31,92,0.25);
+    }
+
+    .item {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      margin-bottom: 8px;
+      background: #fff;
+      animation: fadeIn .25s ease;
+    }
+    .item-title { font-weight: 700; margin-bottom: 8px; font-size: 14.5px; line-height: 1.35; }
+    .item-row { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--text-muted); padding: 2px 0; gap: 8px; }
+    .item-row span:last-child { text-align: right; font-weight: 600; color: var(--text); }
+    .qty-box { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .qty-box input, .qty-box select { margin-bottom: 0; width: 74px; text-align: center; }
+
+    .badge {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+      margin-left: 6px;
+    }
+    .badge-white { background: #e8f0fe; color: var(--brand-blue); }
+    .badge-done { background: #fce8e6; color: #c5221f; }
+    .badge-vat { background: #fef3e2; color: #b06000; }
+    .badge-old1 { background: #fff3e0; color: #b06000; }
+    .badge-old2 { background: #fce8e6; color: #c5221f; }
+    .badge-chiphi { background: #e0e7ff; color: #3730a3; }
+    .badge-lienam { background: #eafaf1; color: #0f7b3f; }
+
+    .empty-msg { text-align: center; color: var(--text-muted); padding: 32px 16px; font-size: 14px; }
+    .empty-msg .icon { font-size: 32px; display: block; margin-bottom: 8px; opacity: 0.5; }
+
+    /* ===== Skeleton loading - cảm giác nhanh, chuyên nghiệp thay vì chữ "Đang tải..." trơ ===== */
+    .skeleton-item {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      margin-bottom: 8px;
+      background: #fff;
+    }
+    .skel-line {
+      height: 12px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, #eceef2 25%, #f6f7fa 37%, #eceef2 63%);
+      background-size: 400% 100%;
+      animation: shimmer 1.4s ease infinite;
+      margin-bottom: 8px;
+    }
+    .skel-line.w60 { width: 60%; }
+    .skel-line.w40 { width: 40%; }
+    .skel-line.w90 { width: 90%; }
+    @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0% { opacity: 0.35; } 50% { opacity: 1; } 100% { opacity: 0.35; } }
+
+    .summary-bar {
+      position: sticky;
+      bottom: 0;
+      background: #fff;
+      padding: 14px;
+      box-shadow: 0 -4px 16px rgba(15,31,92,0.12);
+      display: none;
+      border-radius: 16px 16px 0 0;
+      border-top: 1px solid var(--border);
+    }
+    .summary-bar.show { display: block; animation: fadeIn .2s ease; }
+
+    .invoice-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 13px;
+      margin-bottom: 8px;
+      background: #fff;
+      transition: box-shadow .15s ease, border-color .15s ease;
+      animation: fadeIn .25s ease;
+    }
+    .invoice-card:active { box-shadow: var(--shadow-lg); border-color: var(--brand-blue); }
+    .invoice-details { animation: fadeIn .2s ease; }
+
+    #syncTime { font-size: 12px; color: var(--text-muted); text-align: center; margin-top: 8px; font-weight: 500; }
+
+    /* ===== Giỏ hàng đã chọn (hiển thị để sửa SL/giá/VAT hoặc xoá) ===== */
+    .cart-row {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      margin-bottom: 6px;
+      background: #f9fafc;
+    }
+    .cart-row-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 13.5px;
+      margin-bottom: 8px;
+    }
+    .cart-row-title .x-remove {
+      cursor: pointer;
+      color: #c5221f;
+      font-weight: 800;
+      flex-shrink: 0;
+      padding: 0 4px;
+    }
+    .cart-row-fields { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .cart-row-fields label { margin: 0; font-size: 11.5px; white-space: nowrap; }
+    .cart-row-fields input, .cart-row-fields select {
+      margin-bottom: 0;
+      padding: 7px 8px;
+      font-size: 13px;
+    }
+
+    /* ===== Modal xem hoá đơn tạm để chụp màn hình (không lưu gì cả) ===== */
+    #modalHoaDon {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,20,40,0.65);
+      z-index: 200;
+      padding: 10px;
+      overflow-y: auto;
+    }
+    #modalHoaDon .modal-box {
+      background: #fff;
+      border-radius: 14px;
+      max-width: 560px;
+      margin: 14px auto;
+      padding: 16px 12px;
+      animation: fadeIn .2s ease;
+    }
+    #modalHoaDon .modal-close {
+      text-align: right;
+      margin-bottom: 6px;
+    }
+    #modalHoaDon .modal-close span {
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--text-muted);
+      background: #f3f4f8;
+      padding: 6px 12px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+    /* ===== BẢNG mặt hàng trong hoá đơn nháp tạm - dạng BẢNG CÓ KẺ Ô
+       (table-layout: fixed + word-break) để chữ LUÔN NẰM GỌN TRONG Ô,
+       tự động xuống dòng khi mô tả dài, KHÔNG bao giờ tràn ra ngoài
+       màn hình hay bị cắt mất chữ, dù trên điện thoại nhỏ. ===== */
+    .hd-table-wrap { margin-top: 10px; }
+    .hd-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 11.5px;
+    }
+    .hd-table th, .hd-table td {
+      border: 1px solid var(--border);
+      padding: 6px 5px;
+      text-align: left;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      white-space: normal;
+      vertical-align: top;
+      line-height: 1.35;
+    }
+    .hd-table thead th {
+      background: #f0f2f8;
+      font-weight: 700;
+      color: var(--brand-navy2);
+      font-size: 11px;
+    }
+    .hd-table td.so { text-align: right; font-variant-numeric: tabular-nums; }
+    .hd-table td.center { text-align: center; }
+    .hd-table tbody tr:nth-child(even) { background: #fbfbfd; }
+    .hd-table tfoot td { font-weight: 800; background: #fdf3f2; color: #c5221f; }
+
+    /* ===== Panel cảnh báo tồn kho lâu ngày ===== */
+    .old-stock-row {
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--brand-orange);
+      border-radius: 8px;
+      padding: 9px 11px;
+      margin-bottom: 7px;
+      background: #fffaf3;
+      font-size: 12.5px;
+    }
+    .old-stock-row.critical { border-left-color: #c5221f; background: #fdf3f2; }
+    .old-stock-row .title { font-weight: 700; margin-bottom: 4px; }
+    .old-stock-row .meta { color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 4px 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-top">
+    <img class="logo" id="logoNamTien" alt="Nam Tien" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAEBCAYAAAA9yOpWAACuc0lEQVR42uy9eZwcV3U2/Jxzb1V19/Qs2r3Iu42NjRcwBJJAbEGcQEiAABIBQhZ4A4FsJIF8CW+IJMgGeUMCSSCEELaYRTIQwBAWG9uAWbxj4323FmuXZuul6t5zvj/urerq0ciWWG1r6vcrzUia6ZmuqnvPOc95zvMAC8eP6iBVJQA4/fTTj1i9evWZAJKFy7JwLBxhcTAA/PWb/uxpX/vqF6+7+OJP/T0AqG4wC5fn0XPYhUvwwz9UFUSkX/jEu195wimP+6ee0/SmW+/6cwBYt+5mXbhCC8dhe1y2dq0FYC/7wnvfsPmWLxZbbvuyXvX1T34TQEa0cH0WIsjhHTmYiNwln3vvn5152glv2751i4yMLdI873wNQF9EiYgWIsij6OCFS/DDOdauXctEJP/w1reecNbxS/6wt/lK7e69G9452XzvfV9YuEILEeRwXhzpunXr3KkrR8565s+c9D+d3d89evLB77mlxzzFoJFuvfqGGzctXKVH57GQFf/gaVWVNm26+jOXLG3f9qzbvvcN3xo5Hsef+4vm1s2z7z7n3Jf8saoWC+nVQgQ5LBfHV77yoSeePLbo9Un3rmfdt3mDEBGNjD+Ft+/u33PxV77+odWrV/uFq7WwQA6vxbFhgzHM/j1ve+MpZx6z+LJR2T5+/wOXiGIr2+xYaS06Gtfeuf1tf/nn/3pNCfsuXLWFBXI4RQ4PIHnKuU/840Zn5/jdd32xIL03sTwmy1b8DE/Pjl17wfP//gMavnjhoj1KjwUU6xCPDRs2GCLSN73p1Udee8WGf1jRltfuvP1ySeTBxPAMsuZRsuSIJ8Br8i3g2iJe44XosRBBDovIwUTk3/a2Nx71ql8976tj3T2nbvnuF6WV387cIrjmCdpa9mS7tzu2c8MXv/nu+G2ycOUevcdC7D+EtAobN/KH9t122nN+7ty3LaHJ5979rYvciLvPJgCKDOClR/olJz+bd7uVXznq8b/6i6prmWj9wgJZiCCP7WPtWjATiQLp5hs/feFimjz7/hsucS13j21gB9guh2QpZn2Cpc3ltHe7+3Zk8hKwfuECLtQgj+3IsW6dQoH0pm984q2jmD373hsud37qPpvwDEZHRmAaAJqJNJcezztmG9PfuOa2LxGRrlu3UHssRJDDIAUlIrnzOxvec+w4v/KBm74sPLPJpOjB2AwFZyhY0TdNak+cSjfds+fPXvOaN38nIl0L6dXCAnnsLo6yf7HhY//5ionEv2zXHVdIseebNKpEjEVwksCbFI5Fxpet5I4u2r3pe4s+EiHghfpuYYE8dhcHMykR4Y7vfPTfl4/qa2buulQ7225CU4UyngHxDjgj6CXL0Ten6tJFT8WOXfSJ33jjL85GtGsheizUII/ZuoNF1F57xcffecKi9DWzd14ibse1SPxeato2rAGIdwGmgx4JGotP4a5f4W+9becnFq7ewgJ5bC+Oyy6zRCSf/PA7XnLqkqV/uPvmq8Rtu4Z0dgs1LcCaQ4TAdhE4PRK5TEg2dgR1Bbf+50VfvIZCzbJQnC8skMdgXkUEWrXKXfhff/0Lz3zSKe/It1wnxY4bYWd2UiozyGwP3nfgCaDGCCSZABrLNRk7Bjv39T938cUXdyTMoi8skIUa5LGWVq3lNWtuode+YtULzjz+qP8otn138cymK7Wtu6jRXA5nDBwVcMai0chQsKCnKezICt7bSeWO++778sJVXFggj9HFcZklWuUu+dS7nnPeuSddtPvmb2LXHd/SCd5HpB4FNeCoCSUPbozBWw9YhZiWTCw+kvf0semSL1x3U/lyC1d0YYE8pgpyInL/8A9/cfopK49am996vU7d93UZM5uNFQfnEiSNNpCkcKQw6SiE+2ArsI1xkF3sJ/f0/uXfPvKR3fXhqYVjYYE8JtIqIpLPbXjXT51/5mkXNXffc8yOOy4TU2w1tlHAawFuTMHbu6B2KYxdDmYBWYuuzko2voJ7+VHXPvkZv/b/FhbHQpH+mDouu2ytJVovH/33tz35/DNO/EJr353HbL/5G54k54QsipxBPALlEcCOgMAg9QA7FNIHJU0dW3IcOoW9NfCuNi4AHgsR5DESOTZsMLRqjVuBs0bOO/O0v2vObF6y5abPOurutOAUzARjG4CxEGsBC7AqgLBAnHoILSXKVmLr3s5XTybSDRs2LDxNCwvk0X9s2LDa0Jo1fu3atUf8znPP/Niou+/8B267wpt8h7U0C+IGjPUgIuTiAmHENmAhACXIIfBsJWsdw1Od1u7Pf/lrlwLAzTcvKCYuLJDHRkHuL/vce85/wvFH/O2i3uaf3nz7JZ56m43oPoglWOqClEDEgACqAClDDUE5gSCBUKZLlpyCbR3z+be97V0PLFBLFhbIY2FxEBHJeec9//gnHXfchWP5vUdtuubTrunut7mbRF8ZJmsjlNkEEovMMiQBKGUoBA4JhBMY20KarcDMdveN8OobF4iJCwvkUXfQoOTYYJjIf+m///Wcc05b+eH0weuO3HbXt73t77XgPhgemVokziFJuwDaICZoswtppBDTArANjB6ARWAaI0qXoOP2RTuD1Qvp1cICefQFjRA51jKwWtecjOycx618+3Lee+aWuy/z3NtrmAxgxiEKJAnDkgCmC9UmvAGQ9OCZIcJg9jBKIG1qs3Usz8zYmZvvvuf2+s9aOB57x2MamtS1YSaciOSeD1z0gUV+9wV3fWdjkc88aFgKeNeDE4JDG46XwNul6GMUOSfI4eE1AWDAcDByJMStBJsJWbzsCOyb7t3027+79mtEhAVZn4UI8mgtyOWjH33fiqcevejtR5upl269/suSztyZGNkBwII5gVITIgSnBpAEahaFyjxRGE5DcKAeRAFv2pBkhJyZwPbdM58GUIjIQoG+sEAeZYsjaFf5D/zr24945qlLLh2Zvvf0B6/7pmv0ttgEs/B2GqoCVQbpKJqNMXgtAMrAtAhk+0haHmINlAqoOuRmFk4zGWmfxXv7zZ0f/tDNHwaANWvWLISPhQXyqIsc/h//9s9P/qWnnbWhMf2907dcd7Gb6LFt8CRy2QOfjoITA/Ia5jrsGAQehnII7YVp5PC2C8V4LPcFZI9Eni9HszEGMbr98luumQGADRs2yEKKtbBAHiWLI3Cr/uVf1j7umWef/u8T+d4n3v3dK1272G4b2gakBzZjcLYJMQKwQAxDKWhLO+mAk90gFqgWYG5CYKEg+DyF6LhmI0dhUhr33njjVzoL/KuFBfKoOV796lcnROuLT3/g7ef83FPPuJR33LV4y1VX+JHulG3IGJzOwpFCbQKPKZAapGkKoV3IxUFpHGwVWdKD0wQkbSiKCFARUt2KImkjGZnA1O70u/E/DIAF5faFBfLIrzmwGnLBMx73rAuecuqH881XLd5685V+pJg2qZkGfA6GBQEQ9MHchTFNGFiwtqCaQ9iAyEBpCQgGgEV0cQbYA9JCIz2Cp2dM79a7t3wZADZuXLPwBC0skEf44li7lnnNGq8AvnfFJ36/1d9+1IM3f8Wl07fbNE2AYjosBB4HqQH5BjQDwBbEDCIGUwJlC1ACz2NgIhAAhYOSB0HgkEl77Bie6id3vXT1675NIKxZs3EBvXqMH4/qPggRgdavl2e+4AVLbv7OZ/+lrbufe+fVX/Vpz9lRasL0CYkfA2mKQvZAzF6wUZBZCTXLUHCB3EzB2R68IWhiAFtArQesABw4WQQDIWjSHkFeFNcDKESFcHg2CGnt2rWMw0T361G7QNauXcsiYi6+6N0n/udf/faXTh7p/X5+z3cS3nOfMUUXjAysFtAWRFMoMzwDZMcAWgJPDQg7FNpBIV3AGlDCEOpCqAPRAoP2BoMbDTRGx9Hv67fDvx2W8x8EQNevXy9EgcKzsEAeoce6deuYiPzZx6188/FNOXfr1z6ct7Z9G2O9e0DFVhTOQWAg7OEMIDyCJFkB4jYEDkQFoABrCqMZIALRAuId1DmouNAwhELFq03GzN5JLXbs7F0ZfoPDkt6uANp//09//3hVJGvWrPEaVFwWapBH1F2Kc+Rfv3zjcyaK7q9s+sbXnOzZlKTFThgREEbhuQ3iGYjshScPbiwCmk3k6kC8F0RdACksjwCG4EEQQfg7GKoMUYCMQtWAzTicpm5vr9sPK/QwWhURzn7d61a3X/ji573juBVLXv7rd3zqqm073f8jos8/lun+/ChdHPL1iz/4hpMXZ5/fcc93lkxuu91QH0R+DERjAGUQ7cFhFjCzSBs5uKUoEgefeBB3QOhDkEDZgAzAbMDEMNQAUxOEFAqOpwFxG2QaVLgOHWbrA+vWrSMAeMbPP2XFKceseJWZvq81bjaff/KxY5+5+JP/9lwiksdqusWPxsVx1ec+8qYnHdn8h86N/4uZzV+UBt9HTe4joQQqBgpAycLrKGx2FLLmSjCNQIVhOQUzQ0lApPDeo3AexARjLVQVwRRKwEzwXiAgmGQESaM9u2n7vr2HW15VbgYtbxu2O+Ntf6duueMbuU7fYc45/eh3/+Ufv+bsl7zkJV5D8b6wQH5Ci8MQkXzhI//+rNNXNP565qYvqtzxRV3kd3HTdWDcDIA+lD0UHKJCo4CmFmoTEAkIBQgKUHmGRZGmCTwERdEPyFh5YVSgSiBOZGR8OWa7+r0/+7P1O4gI69ev18NthaScZK7TNVzsJepvSu6/43Jp875jf331BX+lqimtXy9rH2OL5FHxZqJerv/WZz70wqefvPR/Zm77Orr3fQvjfjO3iiYafgIWFk5noDwFNR7Es6DsQfhkHwqahte9IJqE0xkIChArjGUwM5gJ1jLABJQLhBTeOzBbGNtA0pyAE7MHgIgcXhDvxo1nEACwaSXKhsX3kHEXLZ7irfd+xx+xKH/hbVdu+MCfvu5lx73lLesfU9y0R/wCUVVDq1a5r/3P+1989sqJD+V3X93O77tB2zpLCXuQ7wFSAGygZOAEYG6gkY4gZYCpBS8NQG0cp7UQEShCWsWG4VEuBqqBNT42CxmqgEmbIJv24hccVuzE1asDYtdnVxQB2gO7LjI/Be5tNtvu/po/cRm97HW/8YL3HHFEe6mI8MIC+TEc17z3vQkR+esu+egFZx2/+MJtt36jvffuq6VZTDIKB08j8TFmgC2EGLk6sO0jbRCMaYIohaqJT7WA4KBaACogIrAxUFGoCohD/0sR7AXDKvBQapDTVHftnbq+9usdNoukjCBq05SsErQAO0XiumhhCjbfbO656Qp3/Irmc7644T1vJiLRcNEf9dfoEQvzxoK8uPKTH3nx6YvSD3buvCTtP3CTjOgUi3bA1IBKA6oGZAXObIeaAkwJfMuiyy14sxyqaXycx0FgpJoCPAslhleB9wCRAWwCVQNVD08ZrHhkMotZ7BG76Kd4x1Rjy4WfunxjLcQcNilWKWlUdLCP0SmEphLisTBL5meRogsUMPffdrl/3JlP/8PvXP6Ry4no06obDNEav7BAfjQ1h7v2f//7FY9f0Xz/1O1XJrvv+Z4kvsdw/Vhohw2KYaHaAagLogba7SNBjXH0nIfCxiCpcTMro4JCI1Kl9WBQisORQEgA8gAcYBI4pXzXrpk+DuPDFI0ea8cDSBgMLoEPUhDdS1N7C9p537gevfTxf/P1r/xXk2jNx2MPBY/WDeURt0BU1RKRu+6rG151xlL+z+mbL9V9d14nLQiz7yJjDxIfoVyGIYHHLEQLGB6HNePIJQfZ/uCOUAndAiAHT4CSgiEAFEIUEysNf5JASWK6xRAhKBG3l5vDWl60MEYUrOFa5bBaQMmB1QOyFW0I5zuX6qLW+OPPOe3UCz/2gbdtJ6JLYzbwqFwg/AhbHIaI3Lcu/thvnTTO79h541dl311XaaPYzUmxB4mfBmkPoBxEfRD1ITwL2FkkI0DWTqHkIdgLpclANCTEB1/gpQ/RHMqAMQj1CAmYDVQEEAcgiZHHQpQBpBhpLQVz2r/nvjuLw7BGx7p1MYJIbxHIpYo+gD4EXah2oNJBghyp7kDau5/23n2Nc7vu158669Q3/eEfvmrF+eef/6glN/IjZ3EEKPfKz3zolx+/PP2P4q5vjxX330hZMcMpK6wWYLgwxEQunjkKdAMT13BAsjgHmWmAZgfRg0LqpCgChZ0BJQLBhXSNOXwUhcIAMDGeAAoLY0dAbN3Ond3Denowa6ABqAkaxQJlQJjgjYXDGEgJJt+LRrHJ7rv/m3pke/qZf/TbF1y0ffu9y1Q3sFYDNgsL5PtYHKvcVy76zxedcdzijb17vmU7t10qE70HiPIpiChQo32EhxggFSg3YdLlYLMcXkegBIAKkEpVd4RqUmKa5SAU/s5wAAQCgFRhYsqlJOHrSQHyEBWAKBMvh+nweQghaoyiwgMNlDMIt+BoDJqugEmWw6oB5XdAul/j+2/bIBMjnae//W/+5ldjsc76KIsk9ie/OGJa9bmN5z/hyOZ7Z++8rjF55/XSmt3LsA6JEOAYQAIwYn3QB+BBRpC2CiSNBLCjEFgIBCIjgCqY+nFRCaAEphRMFkYZBg0ojYDIgoig5CAgMAqwJ0D6EPQAXQGmFLMzM7dObp2cqhWdh92hs33HnlU1I0UGIYGQg8KALYHUwhgGeQP1Pbjp+6mz+dvytNOf+Q/XfuWDGRH9ExGg8uiZ5eef7OII8jzXfeHCXzrj6JEv9O64bsnUHd+WrNjJNk3RlzYMGkjEgdSD1ILQgOcEznpoow/bmoQmUyjIwXMeTmlBpQmSAix9kDpAAINARLRiYTEKRRvEIwEJIw2cK+Rg3wf7Ljx6AJYrKMHUvt3fu//++3uDkHT4FSE008utQlgTQA1UQ23HcFDJ4aSAkoKwBKZYhFEnxDtuIH3w863HH5u845qvXvimdnt0yaNpg+Gf7OJY4y/f+P41py5tfbJzy9eak/d+U5r+AbZ+K4x0Al5CgMJHiNYCmgESH/SkBYWFxNRWKLYnKNYpZYqlHE4oWBUqWSjAqYAi8K04Jg5li0MJ4SGgPhQeWZqN4zA/HBtSJi3TVSJBWX2zGAAMTwRhBZDDyjSS3mbqbb1aZzZdIeeeOvo311z6Xxf+6q/+9LI4R0ILC2S+xbEhLI73v+fvzj7thBX/MXvf9Y2Zu74l7e4mbuWTaHoHqzlAPSgJhEzsfXQB3gPwNGAUZEegaEApgyCFkIVQSTVkgBhKDFC8E6oAMYibULIQ8gA8WBkkBFYCNIlIVgpgJO6SABvbOGxXRkSxkJJRUtIwPRM3lLCpMAnAHt4UQKJIrUeDZ2DdJDLfoe7Ou+jBW7/mH3f8xC++4bW/+4tEJNdcc80jfh7px/4LlsJu//Xetz3pgief8T9++13je+66Rsb9bs7cDIxnECbgbA9kOjFipGCbw5tJOJ6CJoqktRicLIZoC6AMoEbY+zX0NwzFKAAFgUBMEC/glMDJIjgUEHQAITAaFXhLyCLwRSBO4VUCMBB4KMBhLFSdZmwFygIPqEMCiQ1XBpsQuZUU3oUGK1MONg0wLQJ7R9Pb76bGXdfKaUc9fu2H3/N3Nz75yU/+btAyW/+IHbb6sUaQtWuDsNt73vaXpzz7rJM/Orb7gWP23vBNn81s46TYC6MOrAxVG04wAIFhC4MGSAKWldgEWdaGahNCCTwxPBsIEZRiiRA6iTG9GkRyUkA1g8ACXADsQWCwUkCD1VTfp9oIEQwKkyQjh3uKVSBmqiQg+JBmQaKcEkHYQ7mAEiDcgDMjKLgNcQnYz6Il23nv/d8mmr7jpOc968wvf/pj/+9ZROv1kQz//tgiiK5dy1i3To+fmJj4+Scd96n2vm2nbrnqMj+ebzdJMY1Ee4BphIsMD0ES050+lLpwYgBr0WqMIxlpoi8JCvXgpLo9gRqiDgMtNzu86ZclyVD6OwgI4TWk6rwrNKgukoNNOMXCESOGVvUaVTVb3IhUAFgopfAEkGcYX4C1A0cCch3asYn8iiYvP/ucEz/yl2957bOM4Vs3bFht1qzZ+Ijjbf1YIsjatWvZvPUtQkT686cc+9aV/cknbLv6StfqbDdJfh+sdOA0gfgmRFrw2gbJCFgYHvvgeQpOLdJ0CaxdBudH4CUDqAUVAkkfxk3C5vvA+Szgc4g6UDwVBQRd2NQDxsPzJES7YD8K4xOQ9AA18MoofCR0qwK6A1bGCcpotdKjALSYSXHYtdLj4uhz33jvSSVw4SgBKAlsN58D4mDIIzEFkjSH6iw8OziTQKkBhkWKPrJ8q9l756V+cb7jyF9/5s+/QUTxkrA46LBbIGvXruX169fLE55w5sitl33qP9t26vfvv+Fznvp3WaPbwOjHuG1DRquACIEkFNoEhhNGMjIKNBTOTsIne4BkErAdAB6kGmFgiTsaatGhfsYci0IHnar0SyNKxjGSxJ2RiqCyqFTW+YclF6us0dX72GVloA6G1KIxVWdZwANCAfRgJVj0kekkqLPZ7LjzCjmyPfPKO7+98b9/97UvW6SqeKRNJP5IU6yyAHvn3/zNspf/0lkXTeS7fu6BG78sOnW7sbIVlhQsTahawPShInEm3IduNjuIKLRhoW1FQT0g60JNF577Ya68SAY1hlI46cBsdEUswDEgMCrqGZjG5SLVjT7ctdvXAVgPwKhypG/GBQAADiCOF5GGrmT1d/Ig9YGp4PuQYgatJENn9ibedw/5k899wct/90XP3kREf6GqtH79+kdMr8n+6BaHEhPJy1/+8rEXrTrzwiXFvp+758pPOtmxyTbcLIyZCj9cmiHXVwdoEwQDYkC4C68zsC2ARxkunQVTArYTEE0jQaRMhwa7GBEPkCsiiAhEBWTC31UUShqXgWLgEBVqGY5LhFkh6iFSgETBWDjaDWMJHfbSgUG/xnFjENkY8TVGl6AU47QPxSScKFg9WAjGA6w5jN4Lcco7bmi4k4+54PXXffFjXSL6GyYS0UcGWPgjue8bNqw2AOiv/uDlY+943Yu/tKK3+4J7Lv0fJ9tutaPaReYbsJIAoiDVwM4Ng5xhgRBDWOCtB7ImkDLU9KEmhegoVMfB2gKpCYurghsxZwcLsK/Gi01E4XPVam5w7o5XpVcad0mJXtCH8bHxjDBR2FhkxpOEjWgBpR6APkB5bMpiTglBIDJBoI+m4LUPpwaFZACNQKSJhATW76H+7rvs7ObrG2ce115//Vc+9I+i2nqkTCTaH37kABFt9ADh9ss+8XfLMf20e77xZZfNbLfsu1APMBZDfAK1RSUOrWpDykMS4F1OYRsT4EYDQoBqvyIPAnlAroZE/eY+xHSA/2MMOxaUidXQsoophAeRQkRAYDrsivN4rI4fm7bRbqR9zKqqihCs2b/Gq+o6qpBBVkBg4dECjMLDg8hDlEDiwW4S09tu064zcvZZP/tH3/nch64nog+VJNbHTAQJjrJK//K23zvqlm9uePfSTF+39fpv+nTqPjNS7ERTFIYsPDsoMqg0YjgmkBJYEqgKnHpwxkibo2CzFKojICUoXJjnoEBD12iyWRaLzAbGJDAmAVEC0dgspBSMkRidJuMCGyweVYmUE4WXQGxRWDCNgYTUssAY6gPo4TCuSJzY3IuFoQxGGRTvhacUZRKqiOwFEGCywFoAgU0HoN1gdWB4EAoYXgJjRsHiQG4PdffeR7vuv0Eet7Lx5msu+fgqolXuJy1t+kP74WtrjrLPevJ57zhtTF6747pLRLffY8ZlLyUyA/gsLAzOQ97qErAUgDooFREP6QFJF6bZAxo9eI2sWlaIAOItVFpQGYFqM6iVwERPDzMUM0QNlBmEDIxRMBGYdoHQr956SMFCKiWiKEThVSCUgLEI6hVGHFTEIZh2Hn5kxahq8uDUnplOrkg4IwtWlj4Qm4IaR6CVAn9OKCwQk4xByUCxG5YeRCI9WF/ASIFUKPxd96GB3cj8Fp7aci253TeedNyy5pc//7F3vSQKQPzEFon9YUUO5vXyhjesPuJ3nv9rf7Vc5SWbLtlY2G232KS3DygKqGnAGwMyAqs9QPsg7QAqYGKIWjjkIOuRjGQwGVBoB2K7MDYJ0YJi0FYNHXMdhnNFPMr9n5CAKAUEFeVdyYd07QBs0iCLZcICcQ6KHApH/f4MurOd8WXLTm8z0QwOR0YvgKRIYlFO8ZpaQLlqFoYubP3aejBbWJMidzaMFFDclzUB6Q6wzIA8wJgEyzS8bqfp+3f5JrXsU886453v+9e/vZaI7tqwYYNZs+bHLwDBP6zI8fMv//WRP3jpb372cYvltZM3fk6y7XckE90HKc23wWgPKgQlG0ZtxMEIYFTB5GNDr4Am+4DGNGxrGpzmEMohNANQLwgEsA8nPAgu1iO1HJgkjNiSAihA6If6BoAQQ5DAoxWGfSKONbdsCQqMCPCyCKCeurP7AHVH/8GfvvCEku91OB7CVDhVFdKQUmkKEgarx4GnOzysNbCphUOkorCHMkOoBeEmwDYCNXvBbhOS4l6z++4rvO0/sOIXV5353j/5kz9ZGpXk6VEVQeIvrGm6d8Wvn/fzf7tS+k/Z/NVPOLP5KmumGRYNwHl4akPQhroMgMAJgZGGxUF9lNQE25pFMg5wS+AMwaAJUQ/nBYxuleOWQSNolPjwwFKsJeLDq9JHYnuAaQOeoGwg1IRgPM6aR5h3+P1EFItg2MAQIxGlfn9a202z+JyTjzoHwE2HXR9kXfiYe5oW9YWqpBYWhCS2kgoAWQW3a0U5IQg8iItwnZmC5woFXbLcK4AEzAlILEiyMNSgFk3ZYXbd/k2//Iz2M1//m6suXUT5C5j53h83uZF/wMVBZ5xxRvJbq8779LHZ5Cs3X/lpJ5vvtNn0FFI/BfYCoia8YXjTB8hB2UBNE+A2HI2g4wwKbsKbcTizGJQthrcmTIuTiRF7kNEQguh0gJy0BsEG/D30NQyYCUQO6j2YDYhNqC+QQJhDL4QQUq565VIySTREImIBkGu7CTrtpJXPAQBj+PCjm1RXaDCrD0lBYsD6EDJhGpqEZDIY04KQgdc+Cj8LiAEkAyHokanOgHUv4PfAFtOgyfvNzhsuccckk2e9Ys35/66qKbDux0pu5B9kcRCRvO8tb37tYp//9F1XbHT9bVfbpD+Dhi4HuzykUTSKMJ5JEGUIMdQaiE0gJoGjFJS2YFuL0Bg9FkKL0XcGorGnTUWAdGFjEW4GA1DKcaHEkVqY0EwkC6YEUAt1gUJCrPBaxG85EGJb6mIFpqovCrgih7gedTv7sGi8ef5rX/uyRSJ62KZZcxOQAJBgHopPPXUlGG7C2BEoEnhRON8H+11IZSeM2wvrpmFcF6boIFUHC4+s2Afdc7e95ztfdEtb/heu/8Yn316O6v64Fon9fhaHYVZR1dv/9+I3Hml7f7vtus+4dNctptHZCus9HGewjaXQ6LHBCM+chSDHFLyZCqhU4WE5g0nHQaOL4bOZWKccDWgedn9qgmAD3yrkVQF1io+416BhRQCMZmBKQOU4DxkoHIzuBUsLhi3Et6Ielg9pmeRh9yIFUQ9Me8EgEBoQHkcCC+p10Nu3HdnKU9OTTjrCHK7LQUQ47DgeXvIg2oAwfkul0owymDgyGsJdUiaQL8INMw2YCNCwjkcUMt5PiimuJGiiD9FJsO5Fv2PtnjuudOc86Zl/dPu3LlIi+uNyk/5RgyWHFEHiPIf+7mtf3P7eZRd9aEWy7+17bvhf6zbfYrKZKcp6QOIY5AReOU4MhKm9QG1zSDSD8YtAbgyWRtBsAVkrgW0whHyU42mGQSllsKSxIai1zUnnICeBXxX6KQwIg8hAtFQzcYD6iopYtQfr6Rkk9laWQHQMgjYEDYBM0M8qOnCur1mWHt6hQ0PPCjG71XKkueS2UcmeziHoQxE67UouivFZAEnY9GQE0DFARwBkUCTQOIYFdMEoYClHin2Q6U12y43f8CctTV5/z7f/59+ISH8c3XZ7KIvjrW95i5x1wQUjb/7t39iwWPY95/7LPy6NXbdQO+9SVnikWAKRFpQsnHQB6gMgMDOINE77tWG8gRcHSmfArc0wrR6c6YQHOSIf5aKqdqH6RlGrAAgCjpgUz0Gz1AtCz4oHPRLKy1A4IDVq2TBswGMChF54TQ3pg2EFux58d5aLonfYzYWsQyArWhFWIoLYalGETaZOdI59pepehDqP4kIaIPMRJFEPpqC2rwgbpGoOlRwJGrBsUBS7ge69mO12zZZ82p1w9i++7prP/fc9RPSPpW/MjyqSHNQCKdGq9evXp5/569d+YGmx6zmbrrykaOzakmTdKZAoQClyZHBkIQRYru3WJUWEfKCMgEGpBTUZvpFDeQpiM6j2ahc5BzSvfk2tmoBSC98KRg5FAYo2BaBykIdABDhfgE0G7wkwDEI/1g8UeTEIqu6kUA39kkCb97AKqDqIAOh3ob1u++Sjjj0SwIOHUy9kXblNNUzsIlkw2bgsBFCGSBLTVIGKq/WjOKbIwVLbGIb3BTgpAO5CxcH5HCoCywlUA/GRKQOQguFhMQ0UHtBZuF0zZsdtLX/iyvPeesXnPr6NiC78UUox2YOJHAD0jDPOSDZ9+9MXLy12XHDPFRf7bOe2JC2mQ4hlgxwWBIZQmMSz4Lg8BApXRQVlD8eAZhm4Dfg0QUECoh6AQFoMlMEiPvgIsCGZWlY4IKizuhjGS6pDnHBTjmmAhlRLQ2UByuO3m2ohxVUSbZ9nQZKDRWCQAgoUqoDra7th0+OOXr4i/OyNhx2KpeqVwBqKcxt6TeqB2DQMGWvg0hFcvA8UapTyahsCWwGTQ9/1AVFYBFknUapo80w2wvYOTIpEOjBwKFxKM1tv5wa3m+ec8KSP3HzVRecR0e+pqgdIiX64m9bDLRBat24diEi/+7+f+NvFrnfBvV/7qjcP3m1G/V4AffRtJP+xhDkBZRilQP2I3SNVHx5ieAh7UHMUdiwFtRjeroBnCw+HZKCZOPhTCYQDv+tyMEdVUWqRaUU+JFhrIUJgtuHCw8UuvBmkazxMuNNI4wYiAEAg35v1LUsmMek5AP73cCw/CucpbFAmXr9AIKVYiyiFKxyK7QSl4omqj58H3lySpBDP8NSGU4uEC5B2IT7UK6QEQR7rFo5QMMPAQYoOUr+bZu/7tqrfo6c/7Tm/c83lH95CROtVL7PAKv/DjOz8UGlVDF1y3Vc3vv2oEfunm77+NZdu3cSLXBda5PAesF6Cbq50wDoD1kkQdkPRgSDo5xK6IO1A0QXZAslIAdvuQtIcZNpgSmFE40RfJLqpid4eKeqExEBTqEG9GAFhLJAR1QBagLQAJIeiHw1z+sEeATkgJswpcsh9iXxoalXlSwESgRDBE1djUy7v0fSenbCpeeHq1avbzC95RI6I/ihTrDQhAyip9qDolQlWrC17IMwC6IDQi2c/0N2ZIByawYHpkAE8ila6FA07BkUKoQaEG/G+hvpPYCGaQtGCog3FCAxlyNBD1ttEvS1XY/eNX/GnHTn2hm9/8b9LcuMP9Z48FIpFRCTXfOkTb37cYvvGrVddKnbrXWZRb5KS3EOwBKoJEt0Dq9NgmYUhByIPNQ4OkxDMgrgPplkwujAGSEYSoDmFPnbC0z6APQwUqRRglUGaRBagFEoJlEzMZTnWGqZSPvHSgpdRiLTD6IZ0QTILkllAZyGSQ9GDl72A9sDSjFMnDoZCvTFYIAWgsxFc0OiVHvhFXjo0ue9BpFbPevavPO2kQHJce3ikWXGFGFskBJDINLzOwlEUioMH6yyM7gsbpE4BOh1PD6IGlFpQagLsIWLBZgwZDBrK8GIhNA7iCRCnIGYojYF0CUgXgagZOvUYC8+EdJFiH3h2M++682rCjlvapx/b/vhXLv7AcynAW/QjXSBB2I3ke//7iTef0uK3bP7qRY533khWdpCyAtREAkLCPiQ4oiGF0VC2kVgwPBg+7PZsUcACdhyULoXwYrBZAjKjobNKGtX4DuYYfu+iBUQKiBahMCSFxC55qdROSkHcQQmGGRDAe4HzEidD6iOiJqItHCd4FcoKkX3U62yRdirpmceecBIRVdZkh8sC8S4pFKqI9hBDI8vVVGYt0u83k6MDNaZgSAFPCmgKrjwkPQbzOhr1BrSCkUlnwmbLiswANt/HW2/5is7cf/nyp52x7OJvfP69fxoh4B8KA9jun1pFpfX3v/fpp06kb9l85WfE3HmdGU36ZOGCsBoRiLpQcnCaQhQwxkaYNqaA6qKyYRNqDDwBpjEBzdoQSyATbAfK9yFIYB42daz3hsLnhm0MdwzVJNojcLVYy4fesgUEEOchrNWkOQGD+YWSoQoFyt8mUloS48E6LQ3s4mVLjnymqn5q9eqbD6sUq8htDoUQMhPY1TK4RhoFxkuWNZVQronIIlVd9fJae3YQdgD3BgtILaAW5X4p8XsJBFWApYjyTFmoQF0Pfuo+mrxtry90lJ9wzE+9+cL3/v03mekbPwze1tAq07VrmWiVe/ef/92JTz5yxX/M3PAN0buvxbKiS+1eF2nRg6GQz3s/CS8CogkYHoMqw/suvMzAyzR83J09JeiTB7dTZIsWw6UKsUEco8KiyIK4iXIuPBTdvnYGNEQVA4i22p2in4eGBlQgzTUAysCcwnAYoFIBirwAC8BsQWxAxga+V3xdBQUpG07i4g56vwIBIwEVfbNv281oJbMvfe97//YpROv9o9Hz4vs9+ghIEVMDpI0grUQIRqhIgtCeZrWzETecesQv0SwLsQpN+9BkNxxthZM9IG2CdLwinpIo4AUqPqRrYsG+EWaLcgubK0a8YNz3Tefem1V33dM+/0mPe68qCFinP6hKCg91ydevl0s//p6zX/4Lp302237z46du/CbGZieZxYO8ATsD+C4UsyDDAIXO56CQ9mC4EGDTEYhpItcE1GAkYwZFInCJg3AR0Q8Hlh5I+1Hw7WBTrDnPpJbNxNI/pIwEJXeLQAJYNgOQmEoGUTnkQ5EpHMw8hWjQrydBwgbWFVRM7vJLR9PFTz/39J8pMbDDZYEk3rrwyKZBuziOG2j1KJXoVu1jNWmIwTWNH22WwGYMMqXYeC+IbEhIi+tMh5BqCYiCA5gKIv0oECet5Bjr3cfbb/6itN29p9/0lY/+LRHpukBF/r43MVtrBKJ1TGv01JXjn27svumEB274gp/o7DajSpihHFALIwie5NZD7QjADKgPub6WCBNAmsKxhZIFTArbSpG2E/ThoMZXEZhVINqrPWd8kAuk/rkfMHBLLSYqS/3hCUPLDBWNiONcel3Z9uKI5dcn1EPj0sKj6DtM7pzWXmfxKfEJkMNlgUAbnsgravQSnVNjzPNNtes7/K9CBKIMaTIOl++B9x6gHkwt6pBWdyD83YRmsLpurDnDGIPRLpr9e6E8Q5tu6cgRj/8/f37VxR8tiGh9nEr8vhq7DACXX365ISL5lWOP/c0ju7tP2HHlZUVrZsoY9ehLD4lMwWIXhPfBMaFAC31P8B5gjasdKUgnAF0C0RGI7oHaXbAT+2DHx5HzCIQLWCmQaQ72XUB6cWeIvCgth6d8fFQVhgRcmXAGXpVq7SSp5LCUGMo2Il8JghNrqE+CBI0EcqN6kPbB2gcrwJrBaBJU3tWANAVLKBxZDVgaUGEk0kXDPci9nTfTeJtf+Ad/8PIjY0F4WKRZDZltJZpboj7AOSAtqFiIi7QTkjhwJmAVsEiAzMWDJXiukHTDiDU8pOjBwCCxbcAmcFAIDNgGzeVwLwlefdAi0D682w7xm0HYDsO7YWk3jG4CMANvloD705Rsv5/6d17uzz629eYrP/++16uqXbv2+0Mcee3atbxq1Sr34Xf9wwlt7b9py/eu1mLyQWNNH5o5uCZQpAmKzMClCQrbQMEtOE7h1aIQCycEpxaCJhSjALehJkXaGsf44sWAHYFHCsRJwEq0TbUiGZZJUn03GpgQ6Ty7ks6zeQ9QlPCqvlpYRFEaKAovE6S2OAcqjsNIDFX/zpqARMC+T73pbbqojSNf9PwLnhK2042P6TSrKtJ91zKESvUZaEAuVaPemPhohurD5+qCfJJKTL997Z4gtATUQZVhTBvGjACSQtUAMQ1DpdAfGdjSB7QLoiJYUMPFHkygEBkRtDWn2e238NbbrpSzTzrmLRd//J3PeMtb3iIbNmw4ZCa2XbdunV555cXjT3/8yndOdLccuXXnnb6ZTZrc9SGcwFADqisCV6nqT1OcBmQYTYJyHhAKWyGoOlA6gay9FMqj8NqpcbECg4ripju89z5UFHy4DaC+aKhyREfts5L8EvhDgNQMOx8u+hIC2VKF4WenxeZ7zFGLJp5NwKe1EsZ5bB/WWhWVqnYbMA8A8dFTHhR7S/GeMBDcXaSWBnNgM7DC+UCRt8k4JEngnINIF6ZGBQq1iFTTnnXX9fB72LAY3Q6YSH3J5EGa2XqDLF52TOuUo458vapetjqKTxxSBCEifdXLfvNZE4n75d6WW2Q8LUxzRNAYN0jGRmDaLTTak8ja00jbOdJRRTKawI6MIh1tIJtwSMYL0OgspLkXZnwSyZJZJBOKpA10XAceCiETdpy4O1eFsdZODKu7VvJuJUdnnrMUhivtwKAB7VBBEHqQBCoW0DRMwGkGeAe4Ili6kakRFfkhll8PnnpwKEB+lro77sUI0fkvfekvLwUgj+U0q4wgScsrmFWJo8IFRw4bD+1jVf+IAlsXMkiJmRlsGBRFTNUwyBrAZiCbATwLoemAgkkGkQagzeoM1grh9Fza+JT2qzMgdGHRQeJ2IOlvNrvv+JY/oi2//LUvf+SlROsPOYowAHrSicc9p41J6s8+oElaoNluIBlpwDZGkKRNZCMdNFodZM0+GiM5Gu0+Gm2PZKQLbu0BNfcBzUlocxLSmoa0ZmDbHRS0F567AGulhIEKZSoL+7m/Tj29ofoVn/8cAIjVUBVFqjxJgkDNTuJ4pwWJBYoC5AUsJnTlqwB14GdcIHCmgDcA/AwXk/fKEWP8uD/57Ze8Jk65PebrEFc0ZGglEM1pEKKazRnEcAHUgcSFtLb0ueWQdMEQ1CoKJXDShG1ZeHRReAcnDoU4OBE40XBGb+ICDKcZHDfhqAXhFtQ24NlAiZCYBCPsgNkHyO+4lU9anK174xtfObp69Wo5lHtlly3DyJi1T+/u3YKCd5JFB5AeQBZGCZAMPVkUQ6OH6t4wL6FBxtOTwCnDkwXSDA4NAIyUJlH4GbBtwg9lMANkVAlxWEAPAq2iA6Rhg8EpihKkVMGCqBpXIgriEH6JciQmhQMHKrsNOxGpqYkyz/11GnAsEGQg7UF7mzG9605deuRxr33pbz13AxHdSfTYVikV8dFmqOTLDYI7DXUNhhEtquBgD3EuOK+wgmCCH4wS2IyA0mZgO2STsIkfTBqKr3ILlTYUjbjRZkB83pQCEZXdFKwSREbhdQTku7zr3u/KyqNOedzqX/r55xPRf5f+mAcVQdb/xdrl7GcX9/Zth/RnyJAD2MITINSD0m5oCmhmQGkIjWGzDemMVwdBER57ykBoAGIgnmHQjPYB5Yirr3oLg4eea82+2FmvEDk/6MxHz8Hww6V2DhZKkKKxULEhZaNhSSBVB699eJE4DpzF+5yDNI+9mPlzOYl4O0DILKDd3Ty5/XodT/cc8Qe//cJXhTtFeCxHEpFEw5zHLEg6IFWwcJy9sVG8LzAXBhoCpX6AiQTUsqhnqErVy2DLEAiUFEmDYLMuTNaHyfrghsI0AGoQTGaRZBYmY5isAZOOgtM2OB0BNdrg1hi4NYGkNYE0TTHaMhilKbXTD+gRbfuC8AsefC3CTz3jlJWtzC+j2VmMOkupA0gTOFY4uw/e3AOSHsiHvB46CsUKeBwBh2UQTIB4FIw24BpgZ8DewysB3Aw7thpAStozAsOz5NuwQcntkYqIGHSroA6sQYdX2FS0j5DfuuiJV+dRpYC24F0DXuygjiEOVBgCvPfwksD5IKAcBK1nAEyDtDdnUWqNAtFHOQFnVJGqA03dg2zyXnPckonVv/a8n19cF8p+THbS+2GEVmUP4PYgcQ7WG1hlsLGhrlANY8rUCGolMPBoBoRTGlBNA4zu0xA5lGHJQqQDT7vAZgcM9oGNAxkXhtlMBrUjUDsC4gLAFJRnoNSDssSzC49pFCzosyI3OShxMOpAbh9h5m5azP40AMS8/qDTLG61R5qpNeS8V6r7amjJTSJ4cfCSw0seyIGaQ7WAaB+iOcTH3kKFGhmAcij142slkQai8zx8g/HM+aY+JKJjrHU757joYg9moMxepsQSG5GRAVx9r4lQbhIxLam1sBTKB+75kRqQmDh4BSQKWFfw7i2bZMSaE17/B7/1FADAxscw5KvqARPIimrLf4spbQ1SR93IKM7eqI2RhR4ClKyxG8p7QqWgedi4hFtQXgTiMRA1MKQxUIP6VROINiBowAuQ93P0el1/qMwHVidW1SNIz85XA9AwUiTlKRAheGfgfczlUQDUh5IDIaqRIGo+I4dS6KJD0hg19qckzA+3SnxtHyHlupegi77oOYIodSnJXyrAy0CpvTwVIM1B2oVRDdwtbcYaZCC5NXRWryEwrGgkgkS7QHenjvIMLRvNfg2AwerVj90QkmGgqKhJfDrKmi9Eg8DKjf6SmoHU1ni9odEbpg1dlboOb0QlqJ7GM45bR0DGI4VDKzz8xHFatcxIgk+lkIOnPjx14LgL1R76/Sm4ohh72XP/fFT14GtF7kuR5EUOLx6ioesJpSC8BgMGw3JSnaZ2Wm7CmHFYHoWhBIIuFNNQ6cDiCBgahfOTKGQbvE5C1EVSYbB2DsVNGi9mGoPJYDEKArlaNFg2i3ag2gtKfezA7KDoQbQL1U6YUZBpMM0GtrH2IdqHSh/ie2HOHeH78mIv+r1dIBUkNApDE2Ac2MiWyIGRgzioduSuA9Uu1O/jB+/+mi4b1xd/6oP/9AvMP1mx5R8lzJuyaYqHYTSQmFZIm6WALwqIA1TCLDlpA9AGGCNgasSoEvokIevoQLUT4XXAexcY4iUEIwbgNsAjIG5CvIUXCydBL00QSY/qAe6BuQumPNrwFVB0grcl7YbHdti0S73+PthEj3rZy848Mbybg+usszhvNA4N0TzWZQqqRY0QOcozpDUJQGl0aXJx9xaoBjoyuJwsi0U6RdyaLEQNJJJKZL/5gVqmRyGCEAoARRiCkjAHgrpOLxXRsCWPO5VU0YaGwj/C/1M/NLV8ApUED9XK4BiJFARhA88MMRagDs3suVoatNWedcYxL1M9qK7mo3KBqDFOxWiQZLIVchhYCVFySUvSYuw91ZR5uCYNFAQBdb+cgSLO4cXAC8ELRS1lrhqNg1Re4jPhIhAUTobAkAeTg2EHwwV515WRdjNdPtFcHjLhg5vlYfW+Ude03T/J0lh37H966cP5Hpwr4EQqEIfUANyDcj9etCzWIVqF1nChanXIwyi3UJVSITA+vUC8DnugY9gKh0puVZSpoRJNkRSskWcoCvUKFRdGhB+ijx++P4yBCmdReBkg2cQP3HutjrTsC9/ylj87g4gekzT4wjkKOjBxEK16vKWCcmk/Qx0zOKMk37B/4ZyrrIEqKuKjfZ4fpE/wYC3TORNfLd5v4ur5IBAMZUiohQQjYFhABeoF4pACOGjug7WWR730QNRVcftItAc2KwDfhtMeCKNx8bj5ntqoH9UPqRmHLV9QgHQaUowBehQYDqIOpoL58lAsU6mX4KOBTY5yhkupD0Un3ogkRrdwoRkcaJ0ahnApcoLgAwKGSG0oygyXfCzmS8iX4VwTZBKQJxjNAdOE0xQqs1W+TCWsrADIgiFIpQtAwcpQeGTShWWmqX2blZfe0vrdNc/4xHFLst8D8LXK8u1RfpwRLdiWH0HLKLPW+3aA9nUakCRmBhaCyJTQWDNWZGetYHhFlIQlxMnTcpMzUKdg04bTLric0xEHRhFt8crNtIT1478RAHQB7IvMawvDy6BgeDKA7oW4ZZqkFstXJr8M4DMHWysyqWfAQ8SDJIZLUUCTqiA7UMZQ1ihUcsqkxtFRH3sarchRDoonBKrzRAYktHIepOqDRBVw9OPirFt7cdU/IUlAETqENgEZAaQN1QyeGJ5ieU4Uejsc8teg7pdGn0QXLrSUiBdVaipUqapQ5AIUYPVRwcODtYBRIHU9mnzwdr9ssZ7xsz995l8QUTOa7TxmIgklRBS8XBQkpCUogt6c3hbmQSlR+xqO0Z2qs0RNJepihZqEKrp7lS6Xz0v5uiQViKPoQymHcheqPrCAUYQN3Ac9YLA74iHQoHmpJkEIQQhMGQw3IyIlgX2pcgDvh9itniv9Wf0Z61SSGrTrADwUBM2DNx1NPQfqhzzn4vs4ZFOnnZQ/yw3BjZWdM2nl/WFMkKdxeR953gWTD5Z7Qze6fg5gy0q+CRSGq0SQcg7T3cdbb7xKFrfsU//v/33dskCFf/QLO6yOu21nCj11HoYKgpJ6jQ1loKIRHdgbEngo2YHSbbgochjLtUZwvS5+CBX5IbUbEwU8BPABtVRxKLpdqGhxKO/d+gJAQjGft1AvMVcMMxmWCC64xlS4dxUyqYCWcGrUplIFlHzVNS0xU4KP4S+42FYEd5XI8FUocogqrAkXWjSNi83E6bXoB0K1hzWKu4UGYvw6IjBysPYH8r1DEv1plMPyEHUQIajvg00GIRe/h6JSI1WvD6UhJoDG1xIZgaFppMVO6u+4D+2JEyf+z5pf+Edr3e8C6/aoriMiehTnWutiPu6MIYKgD1CKhMfh4xxPmMSk+r471JnQ2iKRqtyIjVUdCJIzG4iLRXdpiFRbHHMkO+JjGdJvopEo4xR6XawGCgn2q+IhhQOZQ5tvs6JCrIB6IhUDUROYmlrUCurBLqpDBZhDFLQLAmul3q1KYF5U+rf1Zk8yaDLRnJ2B+vEBj2mdBhw8QITF4GtpoHoxSLtioc9lsZiDfB4f8DoIoVCThXSQXJxPIajrA5YA4+bd/0hNVG+kigmjFFJRhoH6GbDuQWqbNLXlRn/80571ouevOvdGInqL6gaDYWvdR2cbxJOQ5gB6IKQw3IL6IqCaXAp2zBd15yySuM/GtRH1HUJGwsxw4sDkBo1fzG1c1B5ylaoeJrQQx+ar0oDUxaax1uqYQ2gUlnk/xeLXqAm/j4TcTaU4wIvqIJ3SQVpFB/TdkFqhXzYGqbZQNCohGngp4MVFEpqvlC2GX88Nnjmar9ukNd6WDoXsklBKUBgC0oQgUqDX785JE2jI0niQWtYY+EQAE5gaSIyHpTtQdK6m7bd+3a9YNv5bf/SXf3Qq0Rr/mOiNKDsSUcBBIzTvSeL94f3v6wFaz9XnNcF+ZoZosNw2hodqmMHm9hDZqpZscY71Iyp2N0PAqmAlGDm0SG4js6nqbgoj8Jw0NAxFA5dpkAbWHiAqUOp1h8aej9woG7rTQBRhGxAOlXzsrGPOig5cqhAiC6gymKOiq3LgWZWQYilrqSWNJcqfqsRiP0wrKpKB/Gk9jyXEr0f0QA+MU3YuNOU5g1Iau7SRRVrWTlQfxwopnyEFaQOMAh47YHUTzzx4tYyPHnPC773oWf91w9e/8Xwi2hWVKh99qVZshPhCcwIJszHhisZ+BpcIY6T56OA6h7SbBzGk1msLe4uCKXZIqhZ3qBmZKPJTg6qJiAxu37yH1FAtV90fQQpFApIC0CKbs04f8n5Y0+CGF4WlnpLpkScLqMIqAWjCM4CyKag84D6pAfEkgA5YCcIOxALRBMJtQMfD6sdkGK2MaiFKBUCdChsXZbAYMCw8e3gnIGRhoszbqnmpFBtTimDQEj8vmcQEBnQGql2QChQZCO3q7VOtLaEVaqZhjl0AoI+EcljXA8zSoPdlowaTarA1ZguGAVGQbw43hEBi43sDrFkBkhmguIkn7xzxx579kp+58N/edNEnv/CtVxnDdz8aF8nGCPMSTJvZGIUFKwNeYIyBMkHFxV6VRBHwwaYovhEBlzJVjuxs5yHs4MmDhMM1VYV6B/h+aAmSg2gnAjIMjjy6siGp9ZROXNwITSwRLKCA53F4HQFcF9TMmwBg+OBs9JhImeZNiernPNAdKUQU4h188BGPCSPXIFkMQ32RREhqQ04/Z7pweC3XhqVqP1upNLspU6+IWlEp4KCDIn7ewar9iD+R11U6ToWmobUa8+D4vmhO+lYTySOxFXytIjCWQSzw/W1m693fcEcfkZ33C6ue9s8i2nr4XOGRe4hRVq5dXxhAErDEmpHmwrk0+Hfaf4SAKCjv57mDl0F/g4hhOItaa6FZqHBAlIsaRjTrH+uDdvUUPgqRh+fykKp0Vh+yJJp3EEnmD2NlV5MD4mSNCbCphi46q5mnXqmRBavOua+5D/l53nD5cY7WEgV2sCLoVw0WZAn1JQBMJLPVzV0w6LVUdIi6ZJGFcwZFr4DkQSs4dM+T2mlRlyiiUs2jJFMqUPQVhhto0ix05i67+fpL3MoJeu53Lv3QH/4wZTF/fDBvmJ9wSh0nHNpIJVUHeSSoSnSGUgxm1ueTctLq3jsN421JksBwzVwn1quJZWRpijRJYTkBCYfJ0CFxDQzuf3VfaU7tIxFJtRDhHAB86FE9bCS30pcOEg19vPrOWv0QGXqTRDRApkr+i4Y0jMjAWAuvSfiucj5cAxEyhMgwTVYWvxpHN7W0T6uKYx50YpWhksafz2CbVF1UhQvKh8oAMhBzdF1NQWTgnENiOKpvSJxKs/HnlsopSa0WshAHOLjQFyELUCPWHXbAOY5TbiCFsT04LUIxKQakrfj5Hhh00NnZMUni9ImPO//vrv36h2eI6F8PZartJ16CxBpkuqM9p1ZYlb10g8Ua57FAziLPrs7IlWEX4jqliFA1BEvlGCIN8znwEN+BkK187kFJyDzi0Fr1kkODpqayn64HadE8cO7IxPmjQyjSAQHJ/kgN6mnKXHSo3gnQgb5F+G+Ok2X1390PpH4iFq5DcGkZipNhro5Gjk1FiSeoAL2eAxsDNmaY5Va531JwKmKOlIVS3iemSmor+HeocFSGqgWTgEUhLgeMBQxX8wwDaFGqSyWah0Ei1QBvw8ZaKUXKgNV91NlyPRJq6qlHn/eOr/zPB+4lWvP5Ugf50RJJvG11iHsFs7EDomA/RnVbqwnKe28OkLqXgEcJAJWz7QMuFXE9K7AVHaXka+2XqZYRhOYLDC5+tYV69oe4QDQjAEw4iKKlpl5YMisjasAKeBpoTA01c2oDURzTICWKDfOB8h7N9/N0zsUlBluCisB7AbOLmleBA6TQQCfxoZhnJqgrAB4Y8gx3ZqXWdCKQGBhDEOnBu9lgB2Z8jCRa6/RL1fEXb2LTS+JbLy3nGEXRR2ILFP1p2nUPy7JkRXLqMY9756+96g+vIVq1PXrsPTp6JI2GF+7DGgqj12pAGqVAa85fSlRFkf0fqbJXFqHZMiPRQfPVwMBUw1AKp73qPqma/RqR87Mf6v+jFTBAXDW6DirFYmusDRixBaQZ1fIaUJ9AfQr1WZw9jjL0ykEpRAwUbQgvhael8LQMiiUQ3wR7wPrIoeIGCKMgLAJhCQTjEG0A0gK0DcY4yI+CXBOkXRD2grAvcp4sWC2MzsD4nQA6EAKMXQY7ciTydIV0eUwLZoANPFoQLIXTEYhasLRA2gSjCaMZDBJYtTCwYE3i2QBrBtYWGDbME4gL0aDIwIXCFMF8pxAH70MEUg35sIoJYIU0QNoMYwMoZxNiLZR3YaSLzPR45+brVPfddNK7X3/Bt2+//NO/FJi/G37kbq0/WIq1TgGgSeRt1UloQKmNftGDYgcMwugAi4vPSawFKpY2RS5VB4RpsPYA6QC+A3Y9wPfAWva+0qqJGHokCZhTMCeBhVEiZWU2oEGLWUwrkGFd9LeMOgNULILqPojZCy+cYf8E7SFQrKoCKIvWIJVTzYYr79fwrgpdTaFoxrMF1WYsZBWsMa0iG+oBNAC0UAldxzFMKsc31cRO+oCgWBb9oTvaC6xRJiBbjHT5qTj6nAs4O+LpNIsTNXeLAU1COucNyDeqRUBIQJqApDYJRwMe2aCHGNApiYhKajMwBK4/DS1mwJoHYqO4KI7Gkb0cgzGSMhlBKeBkxMIoI2Eg0WnY4l7q7vi6b3TvOP7II+yFl335Iy8lWsMbNmxIHsELhADAGEMgH0I/BW3doOHfiZKxdToI11KfEmDRqIaYg6gXyZ6RJ6dFbE4DogKPPjx68OhHB9zIxCjHHobAqCDoIbEVAHVQySHSB/kC5JNIZOxDYm/emIMzpLHDISrmcPMW6HMW3H6yoDpPekTDDAudCwDoEKoxtPhqP1/BkEhPUSZwexwjx5+NfOyYmxqNE06hxpGNmXu+pS13FyW0J9BIpA2iSD0oKTKE4Z9NoTkVCm4MuD+VO7SHSA7vPdgBmTFx7DikGAIT4ek4mVB2/HWAcHGkOVgIesV2GN0F4cxsuiv3Y8dMT5x94k999OMf/Ldta9asuUwvu8zSqh+ux96PrqseEEi2CcSnQcj8gGSNgQGrRvNPJYUxZvB/LmgfhFEJF3JkzHn0FNFrcr7+PEUFhdDUFVGACF4Bpl6sJgyYAgjnvRyUMy4PfRp3co5yj6ShTV8SyYZf70AwcB3togp5IgpF85AKX12+RxWEdjipDcBGMmQfYAWZgHiIkpqRReg2V8z8+j9+ftUtO2VNdvQ50+2jzpY+HaNejwo7OXcBdELXnvLgva3BOVeU4DWkR1ADogRMSRysib6ImoTaQk2g9XsP4wsYDeMA6ksgIAWxBdgM3pvW6y8EIWZKYUBItY+GTiPLd5vO5pt8b+t18jOPX/6ea7668Tdp1SoHQNeufWRZKpQpVrvd9qRWSW2cGyAwGiCM7+cDMnSPKQ9i1xRYEIpm1ADgSP3RqiFckVPRGpw0+KjRmrsa8gsXOO61UTOAEN3NPJgCZSqwLwzA/pCVFav1N9A24gFFHINfJlCSh6NFXdBhePkMkB6dK6FDNOjfVRZbEmeZ2wCa0QLNxUUSLd6YoUQKk2K2pztf+YtndZ/xiy//3L278/cd+cRnmuTIp7puehp6ZjGQGoh2wrw6eoEpjBweRZhnFhtmDzR08YNKfahNSFMQMrBmoChdKoUHXIGUGQkHmFiklEyt+ZKUuXOUQhVSCKfw1IThMbAfgXUWie/AdHeZzpYbKJ256dSzjrcfvPOqjW999rOfnf31W/kRKWXa7/dzFeoZzSL0zuFBp4nY+C1pR7XnAh7EOYhzgCWyr1shLVcBiavpkQUv9eAwNTLvKUqRgS0DY6UoLAItQtpGHkQS0EgVCHpgKmuV73OBQLlqgg16kTpENd4fsjtA9C1HJjWkKKWHYPg4N1UbdDoFpYxQedF89aO8U3ivEBUU/RzWi7323q1WVfkv3/SO9bdu3/fBY847L8FRS30xMgGn2eBni5tDkeehBS4+DteorxHpShG70ABVLZAXM9g3tRud3jSMVZDxKCRHIQInHs5LNTFdhnwTkb5wEwksFiwCyw8gkQeRdnbS9KZLZPstn3QnLzN/+Y9/+ap3eZEWEdlH5thucCOiSnGdIZpi2L9+7iPGNVh8gEIRlWIOWqFehNI01cOL7HdCB+olQziVIt7vHkTyQUMaAEdFzaJQWEtJjWpysAtEh6xQhti36qK7LA2hdHPZRHVqcmjGdaDSD/VA5PuHIswPQXGqUvu8CKlQdIoYiLaF8dYghCyBq1OIYg+YiORLV1899Z6Pff6PHtjT/9LiE88yGD/N+eQ4iHIoJGNBHnhUplLYCE3MKKwskezIcQY69ncqoEAMxBuQMMR5aOFh2cJQErPEOIWog/4RSyn2EGX/NXqZxE6w4X1I9H5k/k7u7brJ3H/tF/2i9uyrb7p+44fe+PpXnE1EqhseOQhXs6mZNTYTT1G0z2HYIGcuzai28UoyXFuW9tv1Z0+i/R4Cs0IpKMiELCKkx6EMyCpBCIpaA6wKEg8VgoiJ5kk2ZiIEhY1+MWFg6mA76ey9iopWgnBhlw+/qGgB8T1YZhgKrf7Arw+FFKuHocBmZQrUcVIBpA+WnSA3CeObYGRxki+PYTABIYi4iQTomCkDUwtMDTAlVaoHKIgVRA6GAv0jyRgzvd6eD37wgz0A+MQnPmH+5V8unDrujBc9b29v5VeOOvNXLRY/yXtzjHa5AWccrCmQssAwgl21eGj0vlP4yvuQUNpfSHjAvYHxFlbGwW4pEp1A5pswfYbpN2BcM+hCaqngJPEMyIvXUjE4cIM9MYTb8LoyanztRIMbaIiQm7nGTN77GT1uZPLFb/rDl336fza867m0Zo2P6Sv9BGsQAoCpnfe1rWaJ9y146gPk4hi1r4lzpLE/gvjwlilXKQkb0yKfxA68BhNYpqhV1oMghzXN8ByQgSlPtiCMgWQcLG0YyYI1oAeMFxihgJbyKBQj0X89g6cUTgxSk8IGoYODvp48H3+PSjtnDatQorBcEJeribjBQXwB9TkgEaaTHCo5iCl0uznQS1gF+5ueUWVas3+bcC7hrCSyAd4XSLNk0Qtf+MJW4AqtlrVr1zIR5f/xoY0v2TIpF64861nGrvgZ9OgUdW4Z1BO8zsBhJsry0zB5joKkT4CFaU6R6YbQNpUcWgQMn2QWpNMgzADaC4qT4oIttc4NtYP3REOMBAeSDoxMg2cepK3XX+bS6btWrnricR+8/LPvexkRNYP+w0825UoSr1rRReq9NjoAwol5yIM0xNSoknjxMEwQH0Q4Bim6i8qeHt77WFP2I9ji4vUuJwtLGLimkEPDk4iH2pQt8cgqbaoe11IuUm0UGo4jqDp4kxKtsbzm8NKHSB+iPYiGST5mBnOph+Qrey4aytSpCpP7s3nL/LJ0sR30TFRE8zyv7sr69etFROjv3/PRvaf87Atfcc8+9/vNU58uo0c9VZAcp7k0USjgoXMQa60We9gJa9OJsEHdr8yxNY6EeQ+4Ptj1wD6P94SifoCGNFCkouwNoN+60SVFoQkL1+9Diw6s5BjJ96A5fbfdfeuXxW27bumTTzvqwqsu++BaVbR+0imXKxoFs3qiPD7jZlCh7re/yZx0PcDCJcGRkMctonyNAswI6ZFmgWMnYWI1SADFUzVEZaEY/cOE40D0g2rUpNhrU6rkgg4VP7cYKl0Fld6RMjh6xA1Uu8sZ4rJuKOLYLSHCzhjMp8cC2DnA+IBrR6WTUtV7sAwil1gHNJa65i7IQGHhxQCcgakBV+jMtXfeqXOg5XKXJSL6txsu3dg85dQz/mFn/1bXnxq1SW5BvgWRXkj1SlkfKtmeBIFAkEOVYTEGoBmZq74aHCNlwDlIv4Awg9ImEpsBLEHojPux1pBA4izfVSlJRBEmRjPURUwwsEH7Fz2Q7kIxO8PT9xbSnfI49YTT/2z7bZ9/1gc3fOvltGbN7bX3+GPtl6hYZywpqBfHYy18TLMCQVmGowfJoMEHgNCHYDYI/CmgNBr4d+QAX8B7AtEIDDdCN7z0z2WuNhmVZuS6CYi7IOqBVcJsEZn9+VkgkJ8FqY+P7iHS3YdSCS2CF0Opohh1clQYKlGEoW5yo8FoM7UGWWICvSKiBxXtTKUqVCut3BokPIgetD86VhOrDnpKCVSTYCjPzFm/KfP0X3RdyEf4nGetftceTa465om/ZIv2OS5Pj0NRztHXFVSoVEiRyoAnFI+DgjAsbIr2w+GG5XmBvJ+DCg/yEshoamL0pYEN2RxsMLxnjcVrM7KFA62m1ABLZRatYifn227knbd9QSfktnNf/eJzL73ha//9CiICE2mkqPz4+iCtpV5ZNLAdShIphhX2dT7uVXl9CwA5CD0Q9WqAxQDJrLzu52YSEf1SBCMkURNHdHsQdGP97AeCcwKIUKj7FeBoG82E72+BqDqozwMPSXxEncJC8eJC8e5dFSqDzGdAIJwv4HwxxNZUqs2b76eaWCqCo4oWQYl9Lpw84PyHQahgWV34Ao1mtuRXfuWcebtT6wEhInn1uefqf2685LcfnD3iq0ef/qtWmyu8JrtB3EWNvThIAYDYKBxmIwtLNYUoGhUYSWASA5MIRPZAZQqqs5FKMUgh6zsq1R6qMhUezKyEU3gEjltQ9TDFPrT8FujkVfTALR/zve3XH/34o0Y/fN8Nn/vUzz3/vIk4627Wrl37Y2kspkkSrc6joEJ0Hzyw2dHwTl5mKlRq9ZYLhGp9s1KyFLU5n/pwHXrw6AZZwOh8K97FdL8fzyIiokXwy4QPqTERiEs278aDSlOtNdxRr1DHwWE0jrOWrNdAs3eQKvUqEEKsjbl25M8AILYBRSCCohPTMR9htwysvRBbKKJGBARFdo0yPEml+YoS2o0sWyNBp6vgXEWFXOF6W6anHnI3eO811zgiuuX6mx98wdv+4Nf/6YQzf+FVD143633nRpOiC5/tA6gJdUtQ5tWqvkojg/RlP5DeUDdZSAP1hQws5QBNQ10B9S2YRhseTShlgM6A3GxtybsK7mUqIc6BLZVoUUnWCJogVjB10fIOfmrWTE/eLH7fJB136jkv+Pz/+5OTHviz3/t3Inp37OcwzSeu/EM8xo8+2olMC2kTKgnIFCD1wb2LbJViqQ4KZRraIFJAJ1DJ9cQBy9CFXxTVGRWM2ZjuB0GIkkBSjtqGzVVAlEB1LI5dcHBEI4HCgDQLzVsSsCQQnUSBHgrKoifHwYmPsjK7MHxkIrZsI4kwGF6SphWmHFawRp/rsDpLi+XSZlnJAGyjgHV8CKqCn8NUWJl6aPQ9jxOFJX06SIlGyFg1skR9IECqB7NBr9+f/s71dxcPhdgRkeratfzZz352+vEXrHn9Lrfof49/yisMJk7wvjmKwghyKQC04NGI73MgL6RaVwasozBRjb5goPAgKaCuA/hZSD4D7/oQP3g/DAMulTZq0ZM0ontxsCz0X4owZckWwgkECqMZUp9gxO9jv+t22nTtF7xuvfHMlaP0b3d/89P//M63vuEkIhJm0u/H6vhgj9HR0Yg4x7lw8lGR0teAjbp4n4v1WziDbFJUwEQrDpdRNFltAxgJmyJ1ax4jPvZBHISKOWlcAqImgrlXbB1omcKmYGlGtnYLql0IcojaQ0yxQsOkBnfuPzvMyjAqtRF5OkA6RIMaQzH0NVGnokoviMoIUrNgmzOQVYcPdI6cjAFo3+Tkw+6WtH696Nq1zEQz79vwqZc96JIvjZ+9yuxprHSzWAZjmiDkYCogXN5EPAxroH6tKPqjKFS6cG43yO9GolOw5GENw7AFGxv4XmTB+0218TzoXWk2VD5wOVLeiwy7wL3NZsed35DJ278qJ7an/ugVv/LTV1zxmQ+8XkRpTeibkG7YYFR/VGjXPJd9Ll6g8xmy1oip8NEvJto4RxY0Vx3w+gDV4CkIfi8YyPpUaXrpFaNDtSXpnOcThwaVWyhrqDxddISy+9ULqt2o6KJR4iWJK9kPfkGi2ABMa8MydayfQZRGSK5bQ6h4qN7QIUYk1xZJTbhHPEBkJsbHD+rNlouE1q/fl+v4b/7f3zv/xhOePL78vqsvcr6z1SYaUDZBAe9liEf20HKXEabUMbAQVLtg7YMoh2WBcDBzqXo9Vb2htQGjmgACZE7kqrtxeSi6QWJIFCrTXOydws7bt/v0iDOPfvIpZ/3Tvd+86Ge3TZp/I6LLy6KKmeG9/5EgXiLlMBzNIa9SrfYoibAlNyv2vzh6SCriCIQF0AdrEZ/xRmA9+HyI51cZe8YpxGB6FMastJQeirBxABNQK/oFOMReEitcNGZ0keZRjo+WH3tQPw34KajMAl6gLoG66DuOBgiNMJSERiT3xXpF4gqPhD7mNDJyOxDtARqdp1BEeoHWTo5nfONRWIwC6QbMnJy2dOlBv1FaHzyy/+5d79p+4717/qSbnXjXcWf8ivXNld4nTSjSQFmIWlwickBSpg7NWVswxmGwCOxG4fuMolcg7/TR706hyKeh6sNykNK8cnhTKEmgRDyg5USCaEhbQxrquYBQD2y7SNMZpHYXZqfvMDvu/bxuv+MDclTr9hefesS+y7bd8Kmv3XTZx17xvOc9b1REIvy94YdSzBtrlDks9pIwGNx9Zc61KaNHEuoBSSFSdtMDWickQYeN00j09CDtR32zFIwsLB7PgCeQI1BN9I81qBxwFAohbYYTNjYTZ6GYRaX4qArn/SHN3Vgm1uGdsqZKGDcHrjSgpCbXMwe1EIpNuIH853A4DgadQcnbx03GDM2Z6LwzJUG5RKtufJniseyw9pC6omvWrPG6di3Ts//Phf/3ta/92h//1nMuXvKE2bO2fu8ynyIxI2xg3HTo6xxkrVu6tAauURZJiQ7OzwTnJCuwSKN1cZT5r6Nc1cMk86ctVPP+006owyR4oySNUbAhIJ8l7Jqi7VN7fDp6DI8ffeYz2suPe8b73/7qe3b99W9d+fFPXvouojXXxIVOZX32fUSM4LVU6mhy2MQCuVznR7K07qU+nEIqXITQE9T9DQ0FdM/7HCYKQVQpuw7m1lkJVHOFCfK3XENKHQZKmaVtnxyasiIREdVlU9RUtgSk5S9Sz7ujOFdlaFOaalIcLaY4211CtDa+8bKoBxgNSGnGCVvTrqrpT82R6xEEFb5SVR4KZucOuSCl9eslKopsOva4437lxb90yqXLzuyfvPPGb/s0nzXS64b5E06qB5dK/df5xjSoLhZoYCgLw4RRVZiFIX0PGAGZ4PQbJMAo9ltQu4nDo5tUk9AhKIzrg6ObU2YyeE9wziGVUaQ0Aul60+/eiwf3bfc0cQSNHXHKiUevPO3E17z8vJ992XN/5m3cbP0vEW2qLZTg6EIH1zx74LbbmievmLVFPg3rO+DEQLgkac5V4i0XB6qHkzS4E4f6M+oca3hvqqVwaBF50EEPy8TCn6jePxMMW4hzTUoqTi5qadZqI/iRxq66JA9LR68vkDx3StqAc5asN2CEMVNIP4ylqoLRiQVVQAgUwYecKIlQG0Xd0wRimqG77CZBkkEwBqIpEE3Cax9EDRhaAUgRHw0OHBvxIDY1NZWySShhek8Bxw4eDhkYKUxysrUZgOmDHC+uoVtr/GWXXWZXrVr1wFnnbvydJx73tC8dOTOVTN++Rzhpc+H7Qd2RbJhX8AWIUyib/a+rGsCH0jJIDS0GaREmanwHlCcgHgdSBrJuTKNsvJ6uttfaCItKhDgp9hksJELpTEuDVnGUYhWxMKwQFuSYBRkHA0aihZHduzG182bp3X8alq484cTjlxz73h5n0zd/55Mf+9xl1/8zEd1e1ilEBBE5YJ2yMTj3esu7T7E0NZL7rWDsIZGlcOVGqmlVHwg06pzFjEJNrDt8MHUlF4atdFG08OtAooEqSx/wOQSLQ9nuJIhvaBiTVukNUibYMNIdG7fsk6qfFUa8y5p1CqrHkHejYJUVAIiZBQch3MCl0lydoFcKbZVhTYc8OKKeVNno208DjQaUGJqrHlInqNXMughzivP9X4+rwE5l3oc0Sb7vwnPVqlVON2wwP33B6stvvH3na5Njn+lax13ALnucgo6F8aMwUgR6hLHBp/1hN51hZQ2vHk49PAi56yD302Br48OEIbLmsB/Gwb3+XKkmjXMRrgi074SIG9PbeOauq+TBa7/gZ++8bPT4bNerX/3LZ3znwe99+uLbr/3UWy753L/8qqraUtBOVXnDhvnrFds0ieHKS2J/QumBEC9ysZNet1PT4aZx+fvXyZw6J5vQWrd+SI7qYQJgbMpqILseEpfNzu1uM2mVMnDMlUtbszKXJK0jELTfLQwZma2pEEa1Q2EoJ4Pmkc5RT6e5ZilUIRYsGlANqrIqmV26tMAPcEQqORPRf136iQ92n3jcz7yPOmjMbrmXW8UWSmlnlLts1gx69svMB3KYJWOg8pgvNzsBqAuXTyE1GbJkBXIvcVahjJp1Zcnh2uyA6V0VEct5fgGTAZlIxyGHBh4AXI9FCf3tt+iuPd+W5uJjR8dXPOk5i0ZPfs6J55yAu7590fs+c+X9f05Ee4YebVXGxo30H3v3sqrKlZdeKFJR72v+9Howz1yN1RvNkYJCUl25nyGwFROBo8tx6X05oLfQPNfkoTaWcsBK58GjH2aBqEoDUdNJVQJKBYlCwKWqna0GmLyE5pCSByMBcYDuNDYARQTKFsxNMLXgJQOQgagJ5tDr8OIj7FmVW3FexA/IivWoJiWfy8aT0Ov3935848b5huUPen2cdx4MEekX3vkH2bNe8lsf+9r/vHfZM578jHfelbsi3zmTGL8XLC50ekmGaBVaI1syl9wfB6oNqiXIQgFaOJg4KSm6D6bVgkofZAKUKeoqgyD1AakPsw/BYRgy8GYpTWdUA61SS6WQyjXWVmRTwIMlpCJGPAzl5Ipp09t2v3Z27REzeg2SsSPM+NhJv/OS849+/prvffIqWJ18cHP/EzfetvdGIro/vhX/mte8Bl+9+P0dH3++96ICUJi8nFOHzwUgyp4IEQxHeFuDpXPdRkOVg4mRC7YboVThCvZWUNggq9qmRBsjyugDAZWZavcnmi6phzGEoihmA95wcKINtnq6Kr/AgRsUquBfFjql3KgfGrms25MN1mwWqAWINHUEMYQwISZDG0uY+uOoixTkdIK6SHnVw6JkBHV1EEFE851TUz+Q4NrMzLl0+uldftunbvSqav7kHWved8RRL111yvnPesF935guejtnkizfC+Nz8AGfgHr6WGsgKiITIVg+kE+QUAOsFp5nAdMNGsNRRkVjQ5b2Q/PmFrzzLfVovx3TD1UXGdAKT2mcsw80FyMOGQupThnMdtCf7aO7fUqyiW3LJ5Yd+cvjS5Zh2TGjLz/xiJWTq6751Gc279yz4ebb7rvrOzfctH3R0tGntJqKHpMYtlwSVknNkLGS1rpWRPXIoRBfRkcT41Dw7SAleOVIRi1Fw+NEZz1alCiqaq1PFNVvKvEH2j/FqqYf/SF10i2YtDKDVa1scHz8+yCU6QGiE82TDswZ39Uo1DB3PrnKYeea3MwzsqJB9ZuUlYig4gts3lz8AC6Zeu211xY1xir/0/qN3ZtXT77q/WtfN3L8zz7zgk1XdJX3Okrdg1AxcGrnzOjXCZn7R2+JlnBECmgbRicAb9DXLjDSg/qRSlEzbKb8sI1JPGSlplVxHx4kD+UiUjo4FLiUg4khvoD0CYlpg5MOd3bepLv23CozjcXI0nHWbHz86OMe/xuLTlz2Gycft3zvi3756R0vWLJt+z1AIZRU3nYD3eNy4wuOM4NGK/GA2TzIEoDojTaHNRHmMqnWQa8IAeX1URlIOJEeRIqlB1HfHWCBZCZZAi8gsgpOCRJ8+4jDzk5aK8Si8kdFg9BGhSAITNi1VEHSh9J0FJ1rgDjm6dKLkKlU4Y9EKr9rpVa0B6Q4hz6wzWKYaI7iQi0TFq8F8EPRtl2/fr1E744968bwa2/87Vf88cRJP/sXxV09dB98gBsgMiaBEwGZFKQexvdh1EEoCC+HJqOtUqBK6Tx6PJZpqhYe3MtASQPEDXg2UG/hkERCY1F7DVTpqOgAroCGhUcCMBEYSXwGaWCAREE1RFXgNTJnVQNCqRZGG8E6DrMY5S6JF8PFg/DFNLxt64M7b5KiOcITy1cssqaxaHLvJDqzD2IknyEVG6I/Z/BGQV6qAaqwXwRikqEcBtORKFJKlNr4fjigoBSahEG/aibYgYuNpEYTn7MI31IpHaWxcRyall40BuMAUITZHQ/WbnhElOFloNEVheMedm+1htAMzT0KMKsrovmIzqEMlHRlW1uwUR8pdr6pLC7VQZDDRJVEIlS58jAVZjAHTgT42M2Oe00lAkZEMJwAxCAmkpIxt2yZ1Z07DxHkfSj4NwxcMfOe97//y2++65ufbp107vP+ZNO3c19MbjGsfUACb4spDAAhKsmXonOBhUyDlLS+g1FepvRAEbNbA4BtNRvBFI1hFPNw0oZF96iuwhJ33fAdxaCwlTpNJxa4IiH9pcBDC0qRfZB3MIZhaRaiXZKeGpcr+m6T9tSr7/ZpxIBSmQ1So5gF6xgcbNW/GI5qoYdmxAXd5nqEIIAlCRObhNAEpR40qjRCsrjQE5A0as2+WsEfI0q47lIJpIsKlGy09+5FkitDvUKC1OcBOrPzV1A115O5Rol+nteZ31yH4ANrs6pL5oMi6YDJQekeRfO4mWpk9CvVCmSj9tyzjzVl/fTDOohI/+qv/opV1fz+b7zxTVsnR/9r4oyXGzd2ivSVtMk9jMp2NNx2kMygQD6wg5ijXi7q4bWAV1fZP1SuR5iFl31wxV5AZkHSBclU3JzMQ6JWD4sV6UMlnjXToDL4Vur6BJCFsUvA3ELCHg0ugP4kUb6HWyanpjISzWEwC9YpGOkgcS7+trJfPRZS6xSs5eYX/c4rP485guhqhoSwh4iQh9r8J62BtYHrpmFsUw8226rdhUB3Z0qihXOpz0u1ZgXPOQcwbJgN6YVhogOIcOgBFwcq7Hs+ZF2V4ERReIGTgLIZYxqnH3mM/VFwVdevXy9EJF+6++7+0ate9KqrtuRvGHvcz7FddKIUmkKLPKBSUgSUhQJTWUBQSgAKnngBUYoEzqjWGKDvBuBbEJfA9w3QT5FohgYH6zlVnvMAPTy3dj+iR4kXRP/x4bPuYV9XtgyIoUM3MAHEINUpGPcgEtdDJgVYZ+PkYytSRByAblS50Up+pzzDy5voBkyBrRutukNEDeqXUnEP2iBthSpYPPb3Sq9tm/UNUzGHYBuH/jREIdY0+B2qHFIxYgcvaKJkC0fluqK2EOsU7IEhYxV6Yt7rXT/QKTgLXxXFsiTi2aWPOjEPPfzVa8uABzak1EgEpbL7HMTDUkONRYuW/EgWSNWAjaMARPTO+67Y8KyVZz3nOVuvnnU6o9bKLAQ+6GLBBrq7EqxJ48PtggllTfVDpCxsUzC1IRJ2NkGKlAkpB995p+V1rnPaBAeCJbVsguk8s30HMIwJaZePlI9SByzUAn3ZCaNLkEgK1W7Q76I2nDAK6oLQhNBI7OMIlPJgYFSmx3MsmxUmzN4jdNKVKcaNPlRdHIMwABIwFsXO+l6IOhhKUNX4VNZywwtEvAyeq6gkUx96s2iAKcyxqy8sanbtBx1BCAzvFc55HMhnYZiEZmocewp9CipqeeL3h8RQDRQaSrHIlKY75MUhSZPWokVLsx/hAqkIfarq3/vJb/z2Zll+9VFPe5GdHj/N78YicNqOO8wASREfiIQqCvEE8QwRBFVI0TilWE7bFWDqA24avdntmJm9B85P10QyCAdWLJznoX8IO8b50w8/h9ZfBq6wy3M5Cq0K4QDPGzEgCfZ2pf4BV41k3f/EgONHEIj2wpisDkspBa8VgkQl+BCT42zIwT5KeqBSICw+hQeFHc0c7ItytYzUB9MYjb4eccC+nLCjh/mtCFz1KVgtSLKKS3VA5Xflh6lvpIpU1YSZlsiQUrOJH/lBRLoO6+jv3vWu7Vfds/NX9zWPuXH8CT9v8tFjpVcQXL9TaQiDgAKKnDx8JRdX0tZdHCXoR2p/7HzDgZFDfQdSdEFeA3UbqM2P1GyU50k3hrcyHUpa6w3Gh4ZAUePAteIG6MJEqY5AyINQwIqJDukFiF0sv7J4P+vzPzREOwoTphobquGjapzM1AQD+aWSkGoGZEOqUWke+mZVQ3dUd2VWE55l9SCKHgkHW4OoIQEz2E+BdTfAHSjNQv0kyO8D/DQMFdVJKiAfMEcSBflyEKaFxKyAxQSMNmCKI6CuCaezAd4VBFco0gAJo05Llri7DFQpVKNVczlm6zswvg/2RVkf2UYkpJXKfz+qYz2tl7Vr1/Ka33rtlt98+8fP32ZOuOKIM3+ZNVsmgIGIg5GZkERwC4U1YKIw3EQhdWFWmKQPYwsY4wHtxw2oD2gXRglUjMDMJGgVghQ5OPHB/o2TQC3XoFQOycHw8UFVGGIYYnAl71oElMiYwAUrz+BkH9rApR+KugCjcxD5M2xgixVQN4ZcCwi1QbQcKEZAjmDgYNSDxQA+hacEnhFqEPRBWsAQYDgJyKMleFMg5xx9ZigvgsoE4LPgKYMmjLSDpKsWIIlsDhmFwTIwJmA4G4imi4ZenwjEF/DeRYHsOKMChRMPKxapb4B9E+AWCn2AKO8D/ZSxDKkeJLbDPkjlVShUcIWK5LKIdKjOwmM2CBhUTEpTQYslkFRKrahorV6x1e43SBpqCng0twiz+3Fs5tMBDlIOhybh8oP3STaYz3/0o3u/872b32gWr+xmK89Ev3WMhoGxHkj3gdWBxdZ4WWY/UGOQWgjqyoQEC9efAYq9QDEF390Di9kgYqC9mMPXUcYDlugP3zw7CH0HHSKqlqoitQnCuirMfg27mvBfDZscGp2uj+VGYcC5I7L7UaoqXtVgTqbuYjUgKNUb2742mhGBtIM8WLz2tG6hHImFqglELRQJfORYhUIUA1/zOR2IUIT7qEYS7bSkEVUraqOSc1Cx0j6gmr+IsjBEebQZdtWF1dqFKwr3Y1UYJFrjdcMG88rfW3v1A5O9f1/6xGezW/4E16cReG0A3sFqN3iIxPdYinqXAtasDgxX+a8MmvAcpjG1i253G/LebrBMg2USJNOA9qrvGeT3sv/iqClfDsuCzoeIHUi1fx4JzzkE0pL1PZgh14cojOobhA7Ig1RE+Z+iqlWIcjAKzPWPLO22hxfgwB681AEmMWDhgbQQAlpGGnVDSRS7K1fPh0exiHQ7kYFISozRYHAiRVAXociLqshigFQ2Y64q1ksDy6A4ksD5Aix9GG2CKK1oCGxoICE6l2dUDRCVkasX0xAPYATE7fiQBpYsE6l19scvwblmjagqrVlzwfq/+9PfO2nluRc8b/uVk153G9PUPRDpwxCQIAne4Vqa2OdQPxOvaQpgdPBA14TXmNqAH4H0PBKTgTkLzTQmEE/GwSMazK0rql04kAYDWU/Ew3kHJVuDRXUYCRsCCmsPPuuwA/CQKxhVEDEpV6MPDwW9EGxo3mk5GUlgo1AN0lACBbGFOA8vU0FvFyMRNg6gR9CG9jHK8By3MFSaCYFS48NMejmfoj0QtwlgJAkdEvLJ6tGrhk/QCKeWH5uhYJMRqI7EsVGLgYjCgLZOkQEtkHgjgvoeaZTTKXWSapL1YVdJBmetLUilAh+6AS+nODkWiIogorS1pG1+3OujRBw3brxk8u0fv+h3t2vz2iOe9hwz2zjFT/uJ4IqrDkb6YHWROlNaJpe+J6XJp1RkvQFiFOSOyCmM16gaTzCRB1YlKzogRnrv4FxdxJkGMK7W4K26sY3OTW/nNInpAODK0F9r0f6ACf2AbFZC/YOfF9T+g1hIGeW6gPZrP1kGJFn1gw1BBj6X0KRSsyQx8Tq6wSbOebguwmBzcO62gwVSTTUpEMUTyvxOEQUUUA4/1Yemhu2ey56Hl5gnk6+MPkPqJjVCnd+P/Tog69VftwzhGufSa+lj4IX8RKzKSr2t//jnCx/8r8989pVT7WM2jZ30eOOyphA34g3aBdVeoOfHWXzSQaIImpurlwIHHbDshZUZULEP+ex2wE0jITcYIqoJQysQTYkAYyyMSQ4EnkcpTqnEFubvTtOcukLnXSBDY9gPWQrWpH/KHZ91zviARmnZtAJsBlFvGMihqu7wQwtcyzRVa4yM+P9sBCJBENAwAYdQu7KwOq2IvS0YykCiIU8up8A4ry2aGCrLCO9D7hyGmnpgKQC2EGrEZo2L8F4K8Wm0TY79nGpyLFgKlFBuBR1KGyqjIElgJUjCGClgIBDnu3v3zPYjivVjN72k9evlssvW2vXrP3zj9bfvWdM+8czZidPOwUy6RBwvhZejYbgFpmkopuJY8mJAFoO0HdArmgZoJrBuNaBUYVfMAE3g8xTkm3D9abhiC6zkYLEgaUYkD3GwzUbBvZJSrvHfGRz5cCLdqP9V9vx9tKtwUci7Hg0kRjgXtQlKHYAoQF5iYaX6SjCOiBI8JnqCBA3k0E0PmyYHTeF4f2NqFmWRjO6BwbbAQuCR8DuSQ1704ibKUKbK9QsxIpDYWHeEXhzDgqgB0QyqLai2IZIA1FZKM4jSPgBOVQ9qisgysxobjCyBDPAapPxZBx3act9WDBimylCJDF8yIZ2QfqRZMATNuG/4mCpHCwGJLF2mIapAyfIdFHwmqoRkIKVgeqMhoiAABtpFR/ATPFatWu/iROK3b/zqhW8/7QkXrN87pTK5+W6dIEsjZjtUp+GkZD6Px920A6LdUC6jbCPWIh5AI8j/k8L7DNZnUOwBoQP4BEQZiNNgi13tUiFKi/dVv6FUPnTSDQ8glwNqPCj9qigSRMr3jyIYMiQdqKuU4ykRNKnbp9WoHvX0gubUOZUwCLso8bM7sHlpSRgk8y725jzUcJS3DTMz1QiEmGqakWpde4GBaOjeAwLxsxBqAkkKUTMzIH4dhMOUqnJmUzATctdH7nuo7J9jvaBewyk61O1GJBGGPUmjz1+wUQu07YGNAT0kJ5/mNB0xNHdRqjJq7eaRgR0dHTM/jj7Iw6Vbl112mT3rmS//69u2ur9Zcup5RItXiGvOoMBMcMgFwWisyyiaD1U+LjWVediomRVqM5UMLk/h3ARQLAmMhQhx6mDeE8NzNDSc0uhDEUUHEL33Pp7f554z1MXXA8yJ6zxQM1W6LZGWW91753zo//iQFoZZp7nmODXsTVClkCQhpTXwkXldAhuHlpYzWSvEHLuQcfKKKUqkxOKqdHDFAJJVinUIhe8N/P7g+ReQmxygfoDYKHbkqRdNVEpUbKDpWukuaz3vHbCCtWa+KaowxqRjacPiJ3/oqlWrvKrqWRes+cstPfOBY895mnFZy/c1Qa5NqDYBygaQtqaBkKeNQOVWHuD6pJVhQvnwksvg8yzAn9KP5jyhZtHarESFGlWERAObhCbjoICfpz7Rh2Nc1/7nAKVLWfxXjcjocKuRCIkhQmGsJsWEFCn2ioKwXiB3cvx3LgEcsXFGZC5ruI4oB28XQh6pMgUgM2EUN86N0EBu8eDU3ZuNZFqcBywDJiRHQdY0PpwkCIagOgc7LzlYcVClCrEmhtJuTKssiHIo9yPmTRG10qDXTIPATJFgpjXoMfCv4ihpVD9RETBRwi2b4pFx6MaNGw0R+dvu2/yOk556wurmMee2Zu5xSp291DRARj7ClCZC5xO1SYParIOWNg8+MBdMMDH13QKFzcHZSEyTguSNqo3IYZi1YTCIaw+s89Wi2R9+pUEKRMPOv/PBvxoFt0shBaboLkslXhTS8yH3rjm8DoLWBjGTiLcFoqz6AupTMBpQCRRHklLfKm4aisqQBzoso0YctRTUg9VCxcEV+wLDPCMlYiibQxqws5IYb9IUsAzxOTy7WHBHrz7yIJ2dp3OrUGmA1IYizggMGyglkfIdac2l/RrcAHnQh+B10XzBmGsC1hFRI5CI2kfIAsGagULKzd+75MJ3nnHuBX/ZmdzpC3+f6fsCRrsAZmITrjbwQ2WnN8CxEqbLYlGbR1oJQSHodzI0eAQmacOLA4yLDmA1FjQNFFUUGt2ZakjjD74XDHgRtWjCZKsUqYoWNKeOmcNCJR0W56gUdNSGCCnBfasSRZeIdnKpIjOsrKNEkNgnIiKI83G4rRQyJPhDRD55687d+3IxedJqklOFiAGEg1iZ94ArYHxncEoHRrow0oPRDiAdQLqAhCk7pmCZFgpHGtRDlQwQxY6oDNFNKMK589+TmsFNTfTZ/oRg3gMd69atg6rS57/0zfds6dLVi055isHIcimMQUG1hREh9QE5r7zJtubuSxEF6gK+A1aHVMfQmzYQ34jwcQQthlTgZU4KUhdN4FpPZI7W2ZA06IHOkjpkhzrzQdmFgsBbeTIFZ9qH0iqo/d4UZ+mDqEfofSn3Ype9BB1KlMzU4l80WSWt6reQ0dgIIiVRLipEQ2OS7qGkWPy+/77ojqlOdmtjxXHoqZEES5GgAY+tUN0Klp1I4GGIQZzBq4VosIW25JDwLhhsB3QnBFNQnoZKF16WQ5BBMQkSB5YmyI2BJYEpda68i2cRXHKHEgCtMXhnobIjNNsog7KHiDfWJgwA6x4hC2T9+vXCRPr//cO/bV15zvOfvtM97iPLnvBs7mTG58YByQjUjMGbkThQFRUB2cIggYloIEsBFhfmq0tYVR3Y98HeQfMEKh4kirRowEoBYCpEKJ0CdAqEaRjugTEKxjiYRgFtQiWFSgoSC6PR9i2CMWFQjmNtUDbiwhk0BxpgHgfzBAyNgMnAcJTy8Tnge4DvB9VM8cGtDAo2CCdzHGQKELHTAl7zkMbLGMSNQHgPHN8HtVuBdAfE7IGwg1IKMhksAYkoLBxIpyC0HZ63wtGD8LQXoB6UZyFqQaYJMsshPAakTNRItfC4HgAuv/zggB3euPHLe7ZPdj6fjB4Nmy3TvuugcPtgkwyaEXxm4U0Cbxrwtglvm3C2icI0IZxF4bMwCyAswcDS9GLBRPXScQ4f6GG6tHMWS9kipBKmJPLe5f1H0gKpEtDgHZjfsnXzv2B0ZTEyejb1uy1VPwvGNCy5oXQ19BN86IMMjRsPOFeqgtz1UEgPhe/G7+HQQKXojQFfk7gpPRdN1BIzocvP4awJ8M1zF2gOr4sq91+pOMHB6lokj8N1c7vyg/cWkKWyBhu8N+YUxjTBJoWaBGrSIAJBDXgkAa4lhUcHHvvgsQditkHsVgjvhNAeOJ2Elw6cdlCYSeR2L3LTgWMJUrV2Fwpr4RtLKG2PUa/ItwDA+eefcVC9MwaAr9506/v77SNnlzzuKUxtq0gdmBcDySJoshTeTsCbMXhqw5sRiGnDm1F404bEU00G0YDQQGykhwgkDumHcdQ5/B48BHNz6KnjUBOVuTkspNDuVM/N/KQahQ9LalTl573y966+d3vv75cf9xTmdEz7bhakBazY2u7M8D4MVPm6zkNN0aVs4iFSVhLuwWiQ/ddoURaAj2BwSTGHH5oE1TIFsmG6jgZ2SPOnWnNQq2gfMPD+8wMvc/UHIEFG0EU8VMLHoczAC9SFxmbQ7m3C6TgcjoQ2ToY2TgCaK4HmEtDIKHhkFD7LUKQZXNqEZItAzRWgxlGgbCmKTOAaApd5+NYMfLOLIuuh21yio8edg346MvOdm2++J+TDNx+ceHUsLO95zqc/9q5TTn/qX3Q6N4nf9QAZ3wEwBRVANIEgCWi1CpQUDgYSO9shP3RBeJkVngVMnYhSWIABr0F5O5DT/H4IyUPtyUxRSsd7gFVT26A9053Nn/rKN3qHkE7+2IPJhg2rzf9953ve/eG3/NHLl5+26oQ9t3oB72NGAUVzQLOI1zQ8nt2a53fZvQ5RxMCCkMN1doH9KJJWE8oOhSeQCa/HCsCHDYiUAVvrKunwplQSPwlzoFuVSP2hWFPWKerlcpE5k480BwWrOxkPnMuoNgdkzA4IPJw38GQAm6LZnIBYixydAPRAAc3ja5Qz7mWfp+RmeQAJmnwSSIvgMYIpCBqAPx7J+Lm64uxn8ncfePDDr3zN2u8yEWj9+oOOIEoEXHzDbf+8kxvb7IpTSMaOFB0dBTVHwWkGbozANNowjTZscwS2MQLTGAVlDVBmQVkKSjOYNINJ2kiSBqzOgl0njCzOVQWcC8jPO11Yv5UMFhOvsQS5Tg9336ZNDo/Qg4j05pthvnDFFTs2udmPjD3ppylf+nidknHkJXRZMZuDuANKtkGNqFfRPyCR3VqAiilw7sMwj++HB7gUhCjJexL+HqggPkKjOgQKaN3Se8guDRUZUkuHVtHIGaRw6sA6r3TuHWoAkswz8zPM3yLKwewgRmEaDDvKMG0Dbiewow0k7RGY9hjM6Ch4bAxmdDF4dAXM2BGwY8tgRpfAtCdg26OwI+MwjWWwjSVIGqOgUYYbXQZZ9lRpnXwe37R59qJ/f/9n1hNR7kUPmrBoS/chojU71ly28bPHnvIzr96yc7vv9R5gi/Eo5qWRbRvmkEPkTkG+A3UzMGqgCH7VMAHFCKQ7B9IWVEw1BVxqGJUCXg+bXkUSWqmBVObeiW00H/+EJ8j93/3uI3WNYP36jbnqWn7eSz/wnn98w++ec/RTn/r8LZfeI5IbpkLnbBY10t3Qq0glpeQp0EeYCkAVXgQ9mUWaNGqzFhHgqJxz3WCcgMwgautDRd7aLEnlGhWg5rJLRerBpkTLDpVUHV6/8CnItiDchKYW1AT6hgEBMt+oEMuBVK2BsgLiwOCI9AY3EUcJemqQeg/SBKKjKLJj/MRxTzJ7ZOSKs8574UuIgtYc0SGwecOH1aqq9MD2nR+YbS3b3TjhTDPbGpdu0kef9iJQFR1UZsA6DdZpkN8D0RyOMhTswqybLoZqA6IA6ShEJ1DIBAo1Ec8vonOtrUUOWw1qqViomGhTVja7XBA51hFAR8JiI4ckJePpCP/IzbBK6Bf43Me/uv3Cz13z+9O0+O7FJz6R+jwhXhQks9CiqCDNkqhZMaeRANSAIIFXDrWdT6C+CRGFFwQn1/+/vTOPt6uq8vxvrb3POffeN7+X4SUkZGAmgEiYgkBAJgdUqgvSVpMSLBmUFm2l1KpySNKf6iptu7SrtLVAsVRahUQptVCrRSuipUgJOBIBARlDJhLedIdz9l6r/9j7Di+EKidIXrz787mffDDP97m55669117rt74/MEhzUJT4TN9cmqPLRbCzljxo5tS12QrQtgARHmAGKGtTD+OmqKTRgLXZ8W+qKoLGrvlqyjxaLwl+M+Ib8S4CqDCEhuEwDGPmALYMQQFIHawTUJmA6ARUx4DWaxdUJxAwQzWwDxbdPgovEz8BGIfcJqjyAu2bdyJR/2GTj26d/AsmEpH1Br8mTcTGdEAC7lP/7dYNH/7vpxx54t/UUDfukdvV5ROkHBWZUm9Bv1Q8lHoB7o0z0AZGRkL/hByAPghXUBS9UK7CwMV02DZNFdCeYox5b2R6gVy70RQ1S0KluCuGABHNG7c+dqfHPr4i0tQQ0eOvPPkzHzl60Yl/8/Qvt4it/xwpClikcBA4ciBkbQEiNdPONGio1SPxcRaHCEI5UBCyxICkgNcmUab9M88YV1bfkegYdChQp0noQaXYve6ojgHTxIhNyFtr+TZYglhbfiCheiYo4mxMSC0DjMKk/QCXYNJBKHt4dUg8hecbcUXTUQ0KQk+Q2DR91FUihdOBPVCjEorysCTDhyEZOZLveXDX6886/0++p+vXG6JVv/b3hTsvVuvXXGTPueiNH77roR1XVBadBPQeK94couBQhSo4Rc4l5FxBzr0QpHGXMGGX0HEYqcG6HFSMh5ebgJU8QkmTjuGpPWiCpjXNuOMhEIh8OGojCd2L4rBiINljxXjfW6Kq9C/fv/v/Tqa9jw8cdDiLLYlSCcyx76BpdGZSPNOOrZk4NbGdApVJ+OIpkOyC+Gr8kabw0bd3/Wdt+vlg1BorUs9UHfo9NmeffRk8kyfQLEIaMCfRDtuAjAU4BfEk0lIVNouNweaGSNIWdJKHlxxeGvBSQLQB0XqgVXJQCiREMEyo2RJqPFdLQydS/9zT+bEt/ppTX/Kaz2zcuNHSqlW/0WY6Taqxat2GPAKc/+EHX/3M/GVHrPzLrRM1J+PbrZEcVjyYBV7rMOKg6I06KQWxA+vTgG/uEFWQFxgqwfgcYIFwBDiQ20PuSh0SFgRWcDM4WmI+AjgM/TBTctyinuy+7/36Fmx748Kuqvy2dX+z7UUnLf/AkQsP+0Dj8bu0MeYANxn+3d5EE8om7qaJ0eFWeHTKnMTngFOwpFBnoJkJbRCWqF+LsGhqoBMW3nkPaMvdIxBam+5Orl3SagGfw479bNwtbcnvw6kTxqcNQBbEDPIGhiWKYg2IUgg/Bc/1UBUlAVCKJyfidwRtSU5rPDm899CLCdU0FoFDhkYyJH1zj4UdXO7vfaj+RytefvEXYpX2N840eA9PE6rKJ7zs4r/e7tJvLl5xnrU9C12SDsMSgYtxJMVOJP5psIxHz3MPpQIOY/BaDageSKj5awPk6zAayrWyGwgt3DMCPr9pJywioYIn4V4Sfjwe2QSIChLL6ZxDD3WYISvAIpX+/H3XfmyHMz/sWXoMTdl+KUxofqgDRAqIcBiYkjBhp5KAtAKmMmAkPjGDxJZAmqI+aQCtgLUE8hlI0jg7YaGUxVMiwNoCk6v5KqJEw09vMJKLf1+FoBoYXkIdd8I9vQSCsfDSCXitBoQPEPotasFcArFBIXUINSDGQ2wDjmsoUINQAqIBABWQljvGaS2YSq0X0AtoJQQYCM4kqNkMu3xJspEXcO/oCXzfI5OvC8Gx3hCR/DY5Bu/pQYbvrepfffrGSzajcsvoCa+yUz0LRcsjcBLQREpB48Jxp/AKOPbQJAUlfSATUynvANdoyQ5agrY9V5x3++/m7kXTxytDnT4ZDHXRGRIhpMAGvu222ybHi3xDefGRVPQOad3Ug0A0eJ/EhlzTJKaDNqORLBnhzk1fcpfHoTUEKwGJI7mBicTte9zuZdfWyGrQQokUEM0hWsBrPX7Ja3FAbncH4j39+yIMmwMgL6RBdTjJA5NLwu+FmYCYMYiZhFgLJP1AGipZoqXYJ9nte6BtlyrhHBonXAVlOFqAonS89C68gJNZpzy96ZHqFae/8pIbwr1v1W89UMfPlhIAwLWf3vDE6/7H31+8NTvgBwNHnM67zJDk2WwUyTB8aRiw5TieSSAqAUkCoQxOKZjHRNareEF1sopGrRG8QFpzK3uiv3cERQvt0pSDt0H0TGySJDGYQWvt2osUAD269clba8lIve+Ag7iwpIICFNOStpHVHj6XZuAQwYsDWQIxoV6rhmkFo/FkkHiqNycWbceXjNrbYOzOK7l4ehUQqUcCZB4H39oAaX0WOUlIxSLsQ5O2oQ4cVOsQrcGjAaUGTCrgLAeXcrDtA2gowEA0iX0ZP00SP022Egs7YaOwMDyAus6W8shytkPLH/nqdx87bcW5qz/WkVb91rdT+x/kzWSYx8+39oyb3/YnX55z3B+etfnur/hy8ahJ8seQksBED0rhITgsglIVVh4BkYVwkB+rCIgYBglQr4LJw5s+gG3Av4iHVwsWghED01S7IvBbiQjiBTAe4j2pZ6RpqTwwkNBMCpB160jiw7vzOzd9+t0vmLPs/fkjB6lUn4DVSThfA+zs9gitNht8UbfK1TAdpwaGByDegKkCFJPQ6iS4kkCNh0ca+idSBFp/4EFFn3ofCx2y29xHZ2k4pDdKDKECwFRM/12wyWvioChp9WoMlyPOSKAmTE4Gz5gpiO6AYgCU9AabcJuATA+YHNTXwN7AII+j2kEzBk3ClVME4sI9ypnQiTGcoChKKPywHzlgOaP/0PptP77/tZdddc3P7rz22oSIit/VM+P/6HLpRfiuW26pfvOuH789H1z05PDhK009WyDezgKjB4kwjK+B/BgoEuGJ0wiXax7vsdYuObyrQnwDzIAxSYudSpp0dNN/JWO1GRUcu+kGcOMtt/7DFKWbe2YfQrkZFEr7waYMVyjEB7wRG26lQAFu0PFLml1tJYg0kOcTKIopOJ+jPZTFIW1CDaJ1CBqhCiSNWLl6ltPgGfIR7fAg7LTK01ajk1pGnRzekwZYt0qQyzArmBMQlUHoA7Q//nzRehHaQOvmIK4wgQyBObDfRRNU/QAmsVB6DjjRZKNHYtNDW99w4eprNqqqOf7KK4vf5cP6D+cpiEjWr19v/uSt6+7+zqbHXm8Xv9D1LD4eT8ts9WYApAzjAesLsNRDjZoHA+ys+aAQGkdS1AERGGPbs8Otj0J/rW88zdDwICIVXW/+zw03POVs5YuzD1kO7Z0rdclgTYIsSWCNjRsK4saRxiGi9r4gKhBxgC+C/IajhXdrODn0BkTrsTTaCANxvoCXPChr9zQb8qvj4TvuSB1legrSFtHQo3AaGpoggbExUAxgDGKlrfmi+Guaxjvaak7CKNgYMGXgZBbqfKCfc9BLmYZf+Pgdmx69bOWrLvtkrL7+zvtiv9LA0apVAbl5wWVXf/nnT+x8/eAhy7n3wKNkJxKdsgaeKiDfC3IVQFI4TeE10jk0A4mBUQZ8sItWycCUQkXhXAMqdShqaMMm/p3tN2oFitznY2NjMzJMNmwI37Af/eKJDTU71/HAPFPXQBoUPA5PD8LpQxBsBngCxFMgmoo23doiKAZzUAdSBmu55e8SxI4RutcBc6DYj2BKQxrz72ix9hwS1KLRNL0CQyPQRMRTW9LuVQE2MEkPlMsQAzjUoGYKojtRyLYAetMKSDOopmF8ONpDB7RUPK0Mo4EUdRpGTvPdwoPPNDVeeNfnb73r3HMuuOoToQlIz0k37FceWaWA3GQiuv7+2z530iErX3n5A/9ax84nfqoDRY0yj3hqhN2NY8c0bAs2eHn7ULv2xoAT2+ruBsx+lFb8arswRLxUq7UZeYqsCp8liOh7T3zz5tvmLD3irEe2/NDnRWESngpFJoMIZ8iiyZA+Y4I1JGA+KK6dgREDtrEsTr6Fa9KmuSbtaXLw2bJX3ZMorsNmuaNoAJpm4acU0itiBts+JFkZauoQU4vQuCJ8H1BGqxCpnYSS0N+AhBGJgoC6GYBPlvi5S0+3U372ox//9Bf/y7oPfPz+qFJ4zhQVv87IqiJe3Fe++q3/7Z5t/uO9h7+8TqNnYIznaYMTeC46cmVqe1BpKCOq5BCtBWchKTpKiNxhyPOrXTtopuZY07QayO97ZOuHGj1Dzg7O5wZXwsVWO76mTTlHqyhDmE6eBIhCGRVQJCZsTAGoZtvSnWlMgd/CPLvzJqXTzTSbtxVmC8MlMGUgHgAlo0hKI0hLQ2DqgaVeJFTuKOEj0jWDbIQp3E8ZAnV1gAGX9fuBJSeZHcXod7688aeXxuDg5zI4ft0AiUwA0i1btlSPOv2iy3+xWV87csQZLhs9VBpcUkMAXCNCwWzA2iCBSgXQUuDP+jK0KMO7HMEfowQvPQBXYu5ZxApWh0m8BvMW0jqavC0m1iQxfqZGyNq1awEAX/vRHZsm1IyVhueRN1adZBDth0hPSE/VRSGiByOJJkWRmggE6rto9GwxIGQgygJREJXQndYs7NRqwymt07m2aN1z0oj/bCuNSSXs+FGOEqj/aZj2a2L+SCGmOVmeBkhC4oHMgSsFqORDiqUGigxAFt4TBz6vSgOkOUwk3ysJhDw8GXg7jNwu8rMOPMPUacGm937k86uvfPOajTGtes7Bgb8R9EBVSVX59FWvuXGrc9cvWrHSSN+or/okQOTEwWgK6ytgKQPSD8gAjGSwrhfIU2gxBfG16K2exmzPR0Vq4BpRE2StRbQGDu5X3MLUqMzgAFEAaMA3ssFZxJVhLTzB+QwegxAZgmglwkoELAyjKUyAa8JqMOQmqYGVQJqCfBLmzZFCkUElBaQM0jJII4xcyhFOHmEGrZHcpuFoEk+wpoorEGmCxJ4hUoJIBo8UHqblo6Xc1JKHPo1JAa54uHQcnrfD01TwmCRp2fiENCsHRWMklhwsOSA1FC5HQQOoJ0f4kSV/YFx69I7Pff47V1133Q2Pqir/ptqq5yVA0O628/s+deOfb0/6f7b43FfY2qwD/FRSBmzSRtdoTDs1SCRUcqjbBfgpoAiS5ZRykJsMl0vaHZrcvjwqGTBx08ZRG1kyY0+QqJ6mv/u7Gx4fr/qv944sJphRVSnFe1kH5UWbFtgdwObdTGOanWaKo83N0daQmnVQFzsbh79yFZ1b7yPcJzkMb5Fvdf5JyqGJRwKhEkwyFyaZDVC6h1JxyM44+qOAAA8Ppy5U5pwEOUl2oJ9/8DlmQhc8/PXb7r7sM1/40s/XrFnDz8fJ8dsGSLPbrp/61Jeevunbd14yPrz0x6MnnWOq2YjkVAmddAqXLRN3C1ABRdghUBRALuBCYFTAGuy7oE1b4vAhSstGqkndUBB7KLzTsUGHmbsUAZkq37z9px+c1N5qz9AhTKZH2wx7ij7j8RvVdPzqAEc37yQBft22RG6yssIGZUJ6ixzMVTBNgcnttt91/lfz93HUycWeS/NcUQ3GRhosnJVCZU24QGGqyKmAY4YjhfO+Qx1hgqJb0+hPaFu0SYGB0wxOK/A0G54OdHOWnGrGMPq96//xX89efcWaL5188tm71q1b97xmDfa33AV1/fr1ZtWqVXcjWbPq1SuO+f6Bx583tOtHd8jk049zmQVpPKZZcjhpBM9qMiAXMJOqBgSFMR5OpfVwQgkzVPMJBMMBTOZUkIUjSUVIZnCAgNatUwJw+TXvuuuRr37ux0NDC1aMb7lLiGBotxlwbXp/Q+AlpKBQCWY5Gpx0nRMYr8GaVZuAtyYh04VSOkU7GC1DtdIyRaVORKGYlmVZSBXiZB8ITBKI/VKFoAY1GQBGgRxIqlBbA5fL0KyAmuZwVE/rYk9sIRrUEw4GpEVoKFICoUFoMghbXuBnLzjBTmDuQ3/76Zsvee97r38wTr0Wz/cz+q3JhB1EwfsX3fC3rz7riONuHPGloW0/+Ir42jj3JwSjCL7hWkCIoZTGB5GFRhia1a+Ar5fYCZSOeQbVdo1e4UCkZtasEcz0JarEzD7rrdTL5V5MStQ1tkR7NB0KrR7T/FU0QhU6PRAjOb2N4ol/xx3Q7GmjvrTbxpeCqekmjLY2jIL9c7i5eAD1aAfNUNMHTgdhsjpM2YXuN5UAtvA+/hLqoGOCIaQwGs6VugOkNAgtHywjB60wO/L+e7/4T9/+4/e+9/oH1v+Gw077RIA0u+0xSL5++xc/eekRo4d9enjxowPjD2/SvNhJFQrUcuos/mog5WnkXEnzGbTmDU3Hs2sDrNuGK5BqT7/O8PgIc5OqIMOTtlyK3eXm3i+7zXB0UhS1bUOme27yNX39tOk9ieZ4s+3oOdEenqdt/e/Uaq5rkNBrwAqF58cRbq4gWwIlJSQlB9in4fwUCCkMW3jkrbJ0S3hITVRqHpqaxqLUN8v3Lz7ebG30fPN/fPTTr7/+IxseeK465M/5HWSPQbJ+vVlxwaVf3vjA5mN54SlPDh90HPmk8DkI3vQhFxN0/ZLCFClsziDPKFwPCsyDahaqVLGpyDnD5ABFq99gDkOwpoKi4cdv+ck3GjO/J7KBAWDX2MS/aP8oisFFqJtBOO+AYieM1mBJQDIO0qfAOg7LU2BNgbwMciksp1DycD6PHuwu+LQrQV34vC2XwNoPlSGo9IfKobYnN9v+5RJlIm3mVeBaBTMcE6kySgMgzIon2FZweQymMgUvVajPwBgKcnRlMCUwFArU7MMGaDjQ0jw1MMUNaN9sN+ug08zW8b7rX/vGD54fgmMNP1cd8uc9QGK33evGjfYPXvuGh+/dpW/NDjupUV5yMk1k87WeDMJRCucKcGT0Chy8q0HcJOAnoZgMcgvNY5rQdBQiTMPda1D33vWvuwiYCRO3/966SAFge3XiZ9W0osngXDZJCdYygKLt8IRms69thNmymAbFbjt28wRBPDm4o8G4J1kJ7VbG7/QWmS5SbFUjUYHTfjj0odQzDGMZTBKmfsGxZBw7+LHM0gI/wIPhoWTgeQGS/tP9gUddbHflc7Z+8Lr/99e33XZbPaRV6/b6HfN3Dn+mM890GzeusStec/GNP9kx9abs0JehmH00dmFAYfuCSA0CIYGnAnkxAcnHQI0xwNeh3sE7gWhH9aoDERS6y8Ef5KJlCwxmeIQ0d8j33vzlu8aZNmWD/dQo6pKYYNMiCDl+yEMtps/KdJbCzXTpB3WkZbSnEm7nPA4942+bmFeK8zukkWjCDSj5MD5tK7ClIVA2BCULZgNqjlW38EAUh6CCpXgwQrKAZGiggjxd7BYe9WqzpbHoR1/Z+KMLPnTddY8FF+FV+0QJ/zmxD+iwJrvuGx+7Nj3q8JM+ONYY58bmXbDSIJsA8B6WGVoAXCTR2jiFyVKAyhDYaOSDSK2IFsYKeO9gLKeLF4/aZ7tozqR7SMyzd03+10vvnzs4uKxQp+LrMKQtJxYoRUvtwMUNaYoNTGSJBkjRJEfjZ6YaLJ1VBS3xbpM8QpjmCTItPKQZIhLFifEc0DoKGYdyD8haqM1gKgkKqoMMQ+BiGbg5265R+p6EAOamE1kKUC+0tNQvOeZM+8Rk6avf+/6jV7z2qnVPxM9in9ny+LncGe+89ork7MuvvLbeO3LzoS9+FaN/qWvwbOQgKCtU89AN1hSQXsCVwdIP1v7Q+Y2DPq1GFxFUibwXsDXlQw8dTrAfLTEWmmVQQxApopNsu/ITLs8m6gfailoVEybylKHStHDr3Dh2H5Ci9oRhfAWFbtNoh9veHYq2RRpcmFOnHDAeJiNQooAtQKaAaBxyo+h0HOmLqilULMQzCrGo6hB87xF+9kEvMY/vrHz3f/3dp96+6tI3PPFcqnL3uQABoMuvuNapqlvzyS9euTPp+faSl/7nxA4e7IwtBRfUYhKMKsC+RQ0kVSgsJM4V6h5k2CICw1wWmciwXy3JHBy8+uAyjKYZdzvlgfIeHhvtwUK7ZeO051Ni99SqYw6EWjqtTgGpBLsDUwlDT1yGtRUYkwWLN21AUYPXRpTbNxWXBrAJCAz1OQBCaWieLDr6LPPoWP7/Vl1+9R/+74984R7VNc+bfGRfCRAQkW7YsIE/9alPPb3p0c1vGuud++PhFefYamVUalqBQQksCdRzmAPwPVC1gE4A2giixPg1CRf38HbTNEWjXmx7+ulicn8Kj7zuf2nMAMgOwGEAil4wyhC1EJQhPubvmsWTRdroG0UgGra8HzWU0QUtwEOg5NvoC9hGlBKa1tACVgFxFWSmYKgGQi3agTNEFcwFjHEwiYNNCjDlsc9VgmopjjmYVlE3WPhNosBW5FyF6Z8jgwuX80PbGhs+9A+fv/yOO365NaRV6/bJpu9z7tC0atUqr2vW8Gl/+IYfv/ajnz1/6/CCe0dOfgXX0vm+IcMQHYLPLagguHwIzpXh/RjIV2FEYNiDOIdI3uywS7lcRm28/tA73vGOCSaa6dL31nb/2KPjG4F+2Mo89jwK5nlg6oGKhde+0HFWBmlPbCAG/CfBwWoT66qRdBkDRGMHXiRQU9SC1US+dIcnejM44EBUB1MNzDWIH4P3U/Ck8FSA0jpMySEpFSA7BWgdEAajF0whoImCE4CyRGiHR5EwMDg/P+DIV/D26ujNBx974av//qM3PRa1VftsmeV58fijDvzm6089/srTli27Ze7RO/qm7rtTuTpGqE+A8ipM1g/nQp3d2Ei40KY9cBMexxBPYBt4/zrTq7wdqyF+QmBhbELErCptVBzp7nMcu+unmhR4BqMTEtcG8oGmG9jsOe1SiOThTyWIGnifwHIFnDBgLTgdBNs+CBE8F1AJJXhqok0pyOStKpwYeDOM8tCBMmfZ2enWsf4Hbvnn269hZrnxxhvNqn0wrXpeT5COdMtvXLPGnnfpW769afPEm3qOPrVIDjrKj5X6VTIL5hoUU1CtRk/2EBzBLixDa8AfTKoMNpzFG+B+EBprw8PwGPNg72HhNHiqaJwk3PODauNw1DgQF6HJKgBL877StFWIVsrRai3Eg3RgYKklVwmpm4PAg6wBrAESAy71AtkANKlAjIWnSHBk0w5dChWyUJpO4Lmi6Fvse+afyY9sH/jk5//5jpe+5c/f97D3nvb14HjeTpBW+XfdOhdPkk/+9NbPHH7U6S9/R4ONTtz7fVTyp5EmDeRFFUbC7mctw0sKShTEExDJI+mDwQbm4IMPNg888IDbDwJEgXWAmscUZjwp9Q6RtZBCABEQgiuUomj1OFQUQqF2qxx0W9YEP3COlSkFhztBvBEoXFRLa0yl2lA4arVcGSx9ADyUCzjKUdAExDLSUj+QlcONpVmxivbVHGXtYd7DoFakoGQApmfUH3DEy+z9j9OHjzjpgqtjXZv25bRqr5wgHUeJrF+/3px/2cVrf75l6pqBo07P00XHSa2yQNWE7rF4jnLtkDIEsRviLDNBPGAs9y570bJy/MD3ixRr6/gWZZMWpUpfbJRKi1Iy3c+jE2IVebkUvNJZHYw0G3TT7SU6H7eqj0DoPEChpQjSEnEANwAuwqQgGZikDyYZglIF0upxNHFE4f4ShKUKVoWXBLmZpTq4TGYd8XL78Hjp2++/9oa/UFVevw+WcveZE6R5kCNACxpE9IEf3rK+fOyK8/9yc61RVB95KilzFvoirgb1NXikYINAumipXBkz6UP+VVeNSQonohS0ssShUtX28NjzJ9qsXAU6owVNK+PuxrKKs+3NmZLmXUS0/fs4KhdUFUmWwPYMgrNh5OyDSVK0pmBE8ogyPBkY8lAFmEta7luofQtP4kd3pn92+HlXfoi2PFm9/nrQqlWrZtSIwt7yGde1a9eS6nrztjXXffjenVM3jJ67KqkvfpGfqiwCoUBJGtBaDnKMRFIkPgPJEIRTJBnDOxn/0g++VI33mxlewwrv/4Mf/PpYvT6xpWRLEPHq/BRIOPj4sYsK2PAlNwwkRAH9jzpA41DroUkJYnoBpGD1IArIIEIVjAYYPs5990B4Nkh7YMXAqgVTBcqDEDMLavuQF71Is0EkaRlghrENsJkM6B6egNBWCHkU1AORATT8IKo0qtJ3sJ+99HR+4HH3lsOPedX7eOvWqsjMSav2hQDBunXrhGiV/8Zd3xg74iWv/q/3PV37xOJTzjX1ymKtYwQeJXjN4UhQRKg5UxYkF2EDE2yC0H50gjzyyHYhsNeWO5OPnKuOqcJpjN3Oy3rTWoCnjQVgN/f55v+f1cBqAqMmIF+VI6QugfIUwFXYzANmHEK7oDQZub9B3UDqwFSPpWELBaOBEqh3oZ+/7Ay7vZp97cSV/+V/q6rx3tNMPfF5b7+BeGGbOPLFf3jlk/Xs4we88FypV+b7qqYINmXB3VbhAwdYVA0MVCSCe2d+YLT/CZs0sVbFuWgdEGUgMG20Jzq8Mjp+g8JA1IZwYBcH0LTDCnr6B2W1QKpTSLQOblFkBCAHh+1wPIakZxJId6Dgx1GYzYHTG+HU1FL2Bqm8Y0Y6MOrmHnaqfXys7/avfu0Hl2uQGMtMTof3eoAQkb7nPe9hJnJLz/mjqxuzDrhn6YpXGsmOc+yWAPWdSHRzqLhI6Ah7p/C5rwMQ2g8ipP3tOZLA4IAdjbGvFHxSOnzVnyFPB8CcgcjCSQEfCe0hHcsDOQQOAacUfQx1CqQ7QTQG0BSEqoBpwGsNaucjLR8Mk82GJoMQ2wdPvXDIAASrb2MAIYIzJeSmT6ky3y087ly7rTrw7devvenlb7jmr55oPt+Z/Gx4X3gT69atk3e/5z28/qKLih8+9ug7JucdsmXuCRdY13OoeGE4N448r0OhSE0KcWGAZ195/7+7lZM6z807lQq1+xZipmVLEjGfIkUIEJOCOA3dduQRCO07Xi6WZcNLqAqvVTgU8FzAs0eBArkKjJ2DtDQbYhmCMkBD8NwTZC4IPi+eE9S5gnEZUjO8jGYdcq7dsqP8j3//qa+v/spnP7srqrlnfCHF7itvJJpdEhH9882f+18rz1h06M3D5vhlm+/6pajUOENwSC1EUfIKCoPtVqcb7M3YFCvcGB5wIj5nwzCGVVTRaSQkGkurqh1oIA+YBMQ2GBqxwlE9YoLa9tmhIdikxYeR5iL+TBCH9kC0D2mpF0lagO0EII+CqAKSQRB5MIWSsXiB84wqKpLNOhzleSsa92/Bn77w5Fd9BIA+32ie34sAaR7Hqhst0Zn3f+1zH3vjGYcc/lWMH58+9WBD52AHkUwBZidEPbww738nCES8d4Ghoy1jeVIFq4PXpjtt6D2AASc28MKMgm0NQgUMUhBMxwWt6UIVPWNVWkwAjxRgCyEHmzGSchmU7ITQOGDC2C6BYUUAGQeZHA0toUaD0rdgGfrmns0PPE6vO+6UCz+rgayB/SU49skUhehMpxs32pf+0eXf+uGTE28fWf5S4+askKdlqSoZqN8Gp3WoNeUTTzw4CVia/eBJNLMqkULEw4kLnQsCVHLA18CegnehGHA0L3JUguMEwg7KuwCdgKVSECqSRAhG7J5TBMspAC3AcGEK0AKUjoHSKYiZgpopFPDwGIFDCYCH0RpIp+A8kJvZUpl3KifDr6Kf/ILeHoJjoyUi3d/6U/vkDkxnnulVlU55xaUfefSp2ieOOu08k845Uho4EOJnkxQFKj1mzukvPbey+zV3pocJU5SxqwNY4cTBwcNBgg12JJuoCgrvwMYhSQhQicY7NvrU5wA1Wo+ZdLq1tMBATAYxfXAYANs5IDsMTvrCwBYi8pQVomFGxZu5cOmJOjjyYu7pO/mpzY9U/+jUs1a9PzCrznT704PYpwMEgHIgyesZV7/5v21x6ZeXvPhVxvUd7Ao7lwpYJCXTc+gBh9n96WGsXLnSpNYm6oIPSJigRItySM0XDFTDHI0SYGxgVKlEr0jlNohauWNmqv39FU7hTS8KVOC5HyYbCh6TSQ7PHEae1QYrPUrhaQB1c4DY4Rf68twT89vv3Pq6Y1+8+qZolumxn659NodXAGvXrqWn7ntq4pqPXXvZow29feHJL7Z+ZEkxTr1+whnUasEfZG1AeM7cMq8GdOcZy18xWLKVRflUHSTEVgmWLRKbIUnKYJTAyEBahvoSCCUwWRDlsKYGwwkglaiA7gdrb/A5FwAQeBf8CZkNFA6OGkDqkPUaoNSAZtvg7cMAG5DpBZkynKaQZARFukSToaN5/gteZB/aMXnT+Ze8+WtReCrYj9c+vQN3VLa2Lxicc9FfrP5PN8476dxTd9UTbJnSH7/5zX+2ZSYpQ/+jdcCi/hJ56aFGDRkLrDioNMLYsfrQpGuqb1EGUQ5hH0n4OVR7oZrAa9DxNpW9kU4HJYJE0RWZFEVRQ29fP2w2EMjrXMBTDaKDMJpAKUcORU0q2j/3WJi+Y57a9MDOj3/ipi9ct2blSmFmj/187fMpSgf/94l+JK+98IKXvP+pcdr6b5t++nkAyswzPjjiCaiDlVKJNC9rMYXUOBitw0sdTQcnQqk1Y27YQowHURF9AUNCEApg9TALDtfEPcQLDgIEDgbWEFITwA/MKdhU4FCFjzys8IdAjNXB0YUyvGC5+eHPi6tOOuvC9dPKCvv5mjH/yGc5KWh/uBjGppp85bpPvHjF6MQ3xu68mXonH9astpPgy5AmaURmhXkL9lAW+KQA93rYSgGlBpRSeKSx05ECpLDanjcXeBTqgCwDZWNA2SHpPRRie1DwBJzxKEhhtAamURQY1crIgTLnyJXm7p9X3718xeq/VFULwO+PauoZeYJ0niSq04RF+11JsbdEQykzeV+oiJB6C+7kEXNzYCooesNMuglC+DifHvYL077IUeTiqoUXwFsGJQRTzmDLFSgpvFah0gA4AVMPRHLk6MXg6EkYXnSs+cWDT39u+YrV74uf/+9NcMyoAGkGyTPKMfvREimIIlJSRQMaKdo+NJt9GrvjAcmqAdEDhcRpwxbrW5seI+H+IlRAEoKppNBeBaXD8KYPQgCbOiATMGoB75H7io4sWCbJ7GX+3zbteOfJZ63+W2Yu9gM4xv4dIPt7qjs8OLAwRQ1wNfW+RkJ5B/meQKiHki8VUFMFpVVQwlAqAZTFdI3ihGUIHkY/lMdQ0C64hMCVAXBPBm/DXYWMA3EDyA1UhuAxrD2Ds/3g0pPsj++rvf3ks1Z/IKa3tL9uTN0AmQGHBwDqKZVeSLUckLomVpEQULhGAKgDEGoASEIDkMfAtoGm3bmip/391aC9EiI4kSBMtFNAapFUhoAsQUNzKNegJPBCcDQAUzpEewaOoJEjj7abt+L757/6rR9VVY6Go/L7+GC6AbIP3dWLWoPUC4gY3jl4jQNK0+yfsyhWTABthHRMkyhOVGgnb5cERfIklMeRlgi2MogkHUTODnAK0gRKDgVl0NKo9s87Bung0bWHtuD9H//0LR954vHHawBo3bp1+vv6ULoBso+slStX2koJs2pP7ICfakA1g0JigIQsjFiDRQRNgWwDxAaEEkST6C/OIAQverCJ8LYJoCQwfWVw2oPC15E7D+U6YATQPhDNlv5Zx8D0HYXb7nryj19+4VVfaF/7SH+fnwt3v5p7dzXJgmecccKsSkWO16kdsA1PFj1QGoZiCMAwoCOALwE6CaFdsFkBY0sgHoGqgUojOM+iCqKnoLQrkEnYgvpSNEolNGwNDdoKUY+Ghgl1SpbI7Pln8PBBZ/MDm6v/8+UXXvUFVTVr1qzh38c7R/cE2cfWWgDrAJx+zBFzXa3a66cmYbOUDBcwAJwE2aBCoT4wqAwBFB1ojQYhI5rUEwoDTkIJjO1DMtAHUy6h7j0YEzBGQpWY5kKyuTJ84Nnc4EVP3L9p23uXn37pP8QLuXSDo3uC7CMRsowAYPGC0YWDZVsa27XDs7FEzHBFjpZOgBiUMDgNHipqgoREotUARZg1KAPZAQhnQGKRZIMQVJBkJVBi4ZCiQQaazZGh+Wdgyh7y2Jf+9bHzXnjapR9W1VrT3rv7YLonyD61quNPDxuqwkbZiHgHSwCYYCgB2KABB2JCkqZAohA2UONBlMGQDa5dEHgYmBQQOwVQA8oOzuQgLiGXpajb2dIz5ygaXngc3fqt+y6/9NK33qN6Z0JERfdJdANk3zzKVRZSUQWpj3qr+PICNcGpSaMvjpABGwSrbC2CrJ0lmHdKBoFBWmYkFUBNCqcEb4KMHeUFMmvBqUx9i/Un925797mvuPrrUerSDY5uirXvrv5y32IUjSaMItwpVMKgkghEAtYz+AUyDDOYCBAPlRxeC3gJ3/FS1o9S0ocsrcAnKXLthacBSFKWBUuP5TQ78qEf3Tt+9gtOWP2Xqor9XbLePUH2g5VaHpFGHVag0BJELYBJKKYAnYJKA0mi4FIBsVPw0gMPhgjA5RocFQANgEt1mP7H4E0KtWXkWkZhemFKB/v5S04yU3To9n+65e6L/vjqd92tG9dYCu443dUNkH11BRvoerVero5PQBoNSgGINGWKkamrErw/jAZPjoi2BgcRI3EONiXYUgIuT8GxhecyTGU+GAM6a+GJxmdHTn739gev/uOr33V3hGN0g6MbIPv8Cs7jzpWlUQdcA4YUkBzQBpg0QhQ1cFY1YHqUCc4JrE3hnQOnBknaA1MeRGGmkHOKhiSgbK4fXXic0dKS7V+79QerL7r03c07Rzc4ugGyz6/QqV650hrn+o1zyAyQwaHwdRAUzAmceHg4GGtA1gTDGpOA1UCRgcmCbQOSJNAsxSQXaJheaNYnc+cfa1A5uPjWd+65qiM4uneO7iV9Bhwda9YQAHzpdasXZ8Yclk9OImVlwzmAPFBNYAAuwaalYIHGBkocKCcGAFso9wClHnBfgnFuYNwksCNLZPEx57BmB+28/YcPv/EVq972+f2FdtgNkN+XtTb8kUHmaKNRyatVSN6gwtXgqYAwQ6gM5V4k5WEoEigxhBycjEN4F0w2jlJfBtPbg0ZWx5SdQjI85BccupLHG4sf/Kdbf7LynJdddV3HydENkG6AzJC1IdBYFs+ZdVoqNcA1fBP1A1gwWxjLEKpDaQrMeeh7cAqkAqQFkj6DtJ9QWEXDZigPHyTzF7/YbNtZ+cHffOifX/Kay975s25a1b2DzNACVtjNh8o4uTS+EzvzSZAhkBpYJNG+eTtMMg5jHcgCdcqQYwDONGBKKXxlBFMmRyPphRk4zg8tPNs8/HDpk5f8yTve+cP77tusuqYbHN0AmbEXdAHApdQcVB3fCVcbJ/gCxNyycTa2BJsqlCbhoKCsH4VUoORQqQzBcwU+mQXuPdDNP/wMu3Wy53vHvOgVbwBQ1zVrmGhdNzi6ATJz1/lXXFHKa9UBTEzCuAaYCxC5YJhDBGMNbJbBmQa8EQhSVHpGgN4ecNYLb/qQDB0kw4tW2Ak3svMb3737XQDqAQe6ync/4e4dZEauNbGCdeExS5e4uh9uTNZgVIl4At5sgzdb4XkbnNkOl+yElqrwSR2SjsP0FNCyR814+N7MDx14JE/p6JYbv/Avb1q9+p3fD6dTNzi6ATKD19r4Z3/fYL/kPvO5A0jgFci9hSCFpwyeMjQ0xZS3cGkJycBs+GwAPpsF7V0sw4vPMGM6/6lbv/vTi6944/tvWr9+fY5upaqbYs30tWFZmAOZ1VceUSoS5wtYzUmQgU0Z1iaANUBq4E0Bz1OwlT64ZAhSGoZWUumZdwxJ/9Fjt9/+wGtWveZt/7I/YVi7J8jv+brooniClMtDFRoDGvf7lLYj4TqU6/DM0LQMlzGmKIWvVIC+KqgvQVHu9+X5L2AeOly/efvPLn3ZhW/8arhzUPeD7Z4g+02IKAC4Wr5Ui6fBOg6TAE4Z3lnAZCASCO0CZRmS/jKopw/IDpCR0eVG+w+u3b957F2vvPBPv9htAnZPkP1tETMLgGS4r3SCr1ehyvCcwXMf1AzDJn1IM0FaHkNSmYTtqUCyY2Vwwdnsk0Mf/uZtD758+YqLP9CdIe8GyH63gh+I4p1vfcNoxZjlXB2HLRpE4oK+qmSB1AIZ4EsGpn8WajzHZ3NP5Fq6+KmbvnbHH1xw6Zs3Rn+ObmA8hxtZN8XaGxf0DRsYgLzkzFMO6k1k9KmtTygXVc4SoGYa0ITRSCxqxkArC0A9R/q+eScaV1lSv/MnD/zFFW9f96N45+iWcp+DoACgb3nL6oMrFZ7fPUH2xu1j9mwCoPNnDbyopHUgH/fWAIUkYQzKTkJ7BRieAxo+RoeXnGek/5idt9/10KtfturqKDzs9jmeqwMeAH72s1ufPOywo3d2A2RvrDPOkA+vuaq3VFRX5DuehDaUUjuMpNQPk1h4wzBDA+DZB8rgklPUVQ56YOO/3bvqVavf+qVuKfe5XRGYhw984OHR73239yvdAHn+7x9ERJKUh47tUT1r54O/gKknzDIMeIamCeqVuaj1LhAePYZ1+Fj+x29tuuyi177jm3feeWfS5VY9t2tZ7E/decddJ9/xnfEDu3eQ53k17dZya7fV6o1Go/ZUid2TqNo6KEmQ944gnbNQe+ct42TosOLnD2x+5yVXXvMdXb/e0PHHd9E8z/G6557ZBAA7tteOKPJ+7QbIXlrlSoXY5zZxOwFsBhIDM+swYM4CKS08HJV5xxU/+uXON59y7iV/31HK7a7naQ0MzOsVbKVuivV8nyDxCF++dNHxQ6n2mGKXJElO1FeBH5yrfUtP4L6lp/AdP9t8WQyObil3L6yxqfFxJdftgzzv66KLBACNmOziiW2PoSo1xeBc+FkHS7LoBeqHDtl51/3b33rmH1x5Q3cScO+t3E0IUOsGyPN6QY8Uk5UrL8nY4fBdE7tQz8pUzDpIs6WnYGDZqXzftsmrTz/v0g92ABa6p8deWAyBonuCPK9rw/r1DADv+9OVJ1TS7QeMV3dJMnupryw5ScuLTuA77t/6xtPOueSzHWlVNzj20sqycsom74oV98aq541ZNJClZnAh5ixaxD1zF2LT5rG/Ou2c1/yfeCHvNgH38hodnTdqjGj3BHke1z333KMAcOdPHrlncz70y/LSU6pbePZHv7Vp83kvPGf1O2Na1f2g9uJatmy7AsCuXdtu6e3Juw9jL630r9/9Z8u/fOONx7XuJ6rdh7H3FzU76ddee+uBV7/p737y/wFKvfZMqpYexwAAAABJRU5ErkJggg==">
+      <div class="header-brand">
+        <span class="name">NAM TIẾN</span>
+        <span class="tagline">Phụ tùng chính hãng</span>
+      </div>
+      <div class="header-app-title">
+        <span id="syncIndicator"><span class="dot"></span>Đang đồng bộ</span>
+        🧾 Tra cứu &amp; Hoá đơn
+      </div>
+    </div>
+  </header> 
+
+  <div class="container">
+    <div class="card">
+      <label>Chọn sheet dữ liệu (tab năm)</label>
+      <select id="sheetSelect" onchange="chonSheet()"><option>Đang tải...</option></select>
+
+      <label>Tìm theo mô tả sản phẩm</label>
+      <input type="text" id="tuKhoa" placeholder="VD: hệ thống giảm chấn, jcap...">
+
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-primary" onclick="timKiem()" style="flex: 1;">🔍 Tìm kiếm</button>
+        <button id="btnDongBo" class="btn-sync" onclick="dongBoDuLieu()" style="flex: 1;">🔄 Đồng bộ</button>
+      </div>
+      <button class="btn-ghost" onclick="moTraCuuHDN()" style="margin-top: 10px;">🧾 Tra cứu / Sửa hoá đơn nháp đã lập</button>
+      <button class="btn-warn" onclick="moCanhBaoTonLau()" style="margin-top: 10px;">⏰ Cảnh báo tồn kho lâu ngày (quét cả 3 năm)</button>
+      <button class="btn-ghost" onclick="moDoiChieuNibot()" style="margin-top: 10px;">🔄 Đối chiếu hoá đơn đầu vào (NIBOT)</button>
+      <div id="syncTime">Chưa đồng bộ dữ liệu</div>
+    </div>
+
+    <div class="card" id="panelTraCuuHDN" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <label style="margin:0;">Tra cứu hoá đơn nháp (theo Mã HĐ hoặc Tên KH)</label>
+        <span onclick="dongTraCuuHDN()" style="cursor:pointer; font-weight:800; color:var(--text-muted); font-size:18px;">✕</span>
+      </div>
+      <input type="text" id="tuKhoaHDN" placeholder="VD: NGUYENVANA-003 hoặc Nguyễn Văn A">
+      <button class="btn-primary" onclick="timKiemHDN()">🔍 Tìm hoá đơn nháp</button>
+      <div id="ketQuaHDN" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- PANEL CẢNH BÁO TỒN KHO LÂU NGÀY: quét cả 3 sheet năm, tính số ngày
+         từ "Ngày nhập kho" đến hôm nay cho các sản phẩm CHƯA xuất hoá đơn,
+         cảnh báo nếu để quá lâu (mặc định > 365 ngày = quá 1 năm, > 730
+         ngày = quá 2 năm) để không bị "sót" hàng tồn nhiều năm không xuất. -->
+    <div class="card" id="panelTonLau" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <label style="margin:0;">⏰ Sản phẩm tồn kho lâu ngày chưa xuất HĐ (quét 2026 + 2025 + 2024)</label>
+        <span onclick="dongCanhBaoTonLau()" style="cursor:pointer; font-weight:800; color:var(--text-muted); font-size:18px;">✕</span>
+      </div>
+      <div id="ketQuaTonLau"></div>
+    </div>
+
+    <!-- PANEL ĐỐI CHIẾU HOÁ ĐƠN ĐẦU VÀO TỪ NIBOT: so khớp Số HĐ trong file
+         NIBOT (Google Sheet sống) với cột "Số HĐ nhập" của đúng sheet năm,
+         liệt kê hoá đơn nào NIBOT có mà sheet còn thiếu, cho xem/sửa chi
+         tiết mặt hàng trước khi xác nhận ghi vào sheet. -->
+    <div class="card" id="panelNibot" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <label style="margin:0;">🔄 Đối chiếu hoá đơn đầu vào từ NIBOT</label>
+        <span onclick="dongDoiChieuNibot()" style="cursor:pointer; font-weight:800; color:var(--text-muted); font-size:18px;">✕</span>
+      </div>
+      <div id="ketQuaNibot"></div>
+    </div>
+
+    <!-- GIỎ HÀNG ĐÃ CHỌN: hiển thị TRỰC TIẾP từng dòng để sửa SL/giá/VAT hoặc xoá -->
+    <div class="card" id="panelGioHang" style="display:none;">
+      <div style="font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+        🛒 Sản phẩm đã chọn cho hoá đơn (<span id="soLuongGioHang">0</span>)
+      </div>
+      <div id="dsGioHang"></div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" id="tabChuaXuat" onclick="chuyenTab('chuaXuat')">Còn tồn kho</div>
+      <div class="tab" id="tabDaXuat" onclick="chuyenTab('daXuat')">Đã xuất HĐ</div>
+      <div class="tab" id="tabChiPhi" onclick="chuyenTab('chiPhi')">Chi phí</div>
+      <div class="tab" id="tabNcc" onclick="chuyenTab('ncc')">HĐ đầu vào</div>
+    </div>
+
+    <div id="ketQua"><div class="skeleton-item"><div class="skel-line w90"></div><div class="skel-line w60"></div><div class="skel-line w40"></div></div><div class="skeleton-item"><div class="skel-line w90"></div><div class="skel-line w60"></div><div class="skel-line w40"></div></div><div class="skeleton-item"><div class="skel-line w90"></div><div class="skel-line w60"></div><div class="skel-line w40"></div></div></div>
+  </div>
+
+  <div class="summary-bar" id="summaryBar">
+    <div id="dangSuaBanner" style="display:none; background:#fff3e0; color:#b06000; font-weight:700; font-size:12.5px; padding:8px 10px; border-radius:8px; margin-bottom:10px; justify-content:space-between; align-items:center;">
+      <span id="dangSuaText"></span>
+      <span onclick="huySua()" style="cursor:pointer; text-decoration:underline; margin-left:10px;">Huỷ sửa</span>
+    </div>
+    <label>Tên khách hàng</label>
+    <input type="text" id="tenKH" placeholder="Nhập tên khách hàng">
+    <button class="btn-secondary" id="btnTaoHD" onclick="taoHoaDon()">✅ Tạo hoá đơn nháp (<span id="soLuongChon">0</span> sản phẩm)</button>
+
+    <div style="margin-top: 10px; font-size:13px; line-height:1.7;">
+      <div style="display:flex; justify-content:space-between;"><span>Tổng tiền trước thuế:</span><b id="ttTruocThue">0</b></div>
+      <div style="display:flex; justify-content:space-between;"><span>Tổng tiền VAT:</span><b id="ttVAT" style="color:#b06000;">0</b></div>
+      <div style="display:flex; justify-content:space-between; font-size:15.5px; margin-top:2px;"><span style="font-weight:700;">Tổng tiền sau thuế:</span><b id="ttSauThue" style="color:#c5221f;">0</b></div>
+    </div>
+  </div>
+
+  <!-- MODAL XEM HOÁ ĐƠN TẠM ĐỂ CHỤP MÀN HÌNH - không lưu gì cả, đóng lại là mất -->
+  <div id="modalHoaDon">
+    <div class="modal-box">
+      <div class="modal-close"><span onclick="dongModalHoaDon()">✕ Đóng</span></div>
+      <div id="noiDungHoaDonTam"></div>
+    </div>
+  </div>
+
+  <script>
+    let tabHienTai = 'chuaXuat';
+    let ketQuaHienTai = { chuaXuat: [], daXuat: [], chiPhi: [] };
+    let daChon = {}; // key = index (số) trong chuaXuat, hoặc "edit_N" khi nạp lại từ hoá đơn đang sửa
+    let maHDDangSua = null;
+
+    // NÂNG CẤP (17/07): CHỈ 3 sheet năm này được phép đọc, khớp với
+    // SHEET_NAM_HOP_LE bên server (webapp.gs / LocHoaDonNhap.gs).
+    const DANH_SACH_NAM = ['2026', '2025', '2024'];
+
+    const SKELETON_HTML = '<div class="skeleton-item"><div class="skel-line w90"></div><div class="skel-line w60"></div><div class="skel-line w40"></div></div><div class="skeleton-item"><div class="skel-line w90"></div><div class="skel-line w60"></div><div class="skel-line w40"></div></div><div class="skeleton-item"><div class="skel-line w90"></div><div class="skel-line w60"></div><div class="skel-line w40"></div></div>';
+
+    // SỬA LỖI (16/07): "688 hoá đơn thay vì 125" - chuẩn hoá khoá gộp Số HĐ
+    // (VD "523"/"0523"/" 523 "/"HĐ523"/"523.0" đều là CÙNG 1 hoá đơn), không
+    // dùng để hiển thị (hiển thị vẫn dùng giá trị gốc sp.soHDXK / sp.soHDNhap).
+    function chuanHoaSoHDGop(s) {
+      if (s === null || s === undefined) return "";
+      let str = String(s).trim().toLowerCase()
+        .replace(/hđ|hd/g, "")
+        .replace(/\s+/g, "");
+      str = str.replace(/^0+(?=\d)/, "");
+      return str;
+    }
+
+    // NÂNG CẤP (18/07) - TỐC ĐỘ: áp dụng mô hình "Stale-While-Revalidate".
+    // Mỗi khi mở app hoặc đổi sheet, nếu ĐÃ có cache trên máy (dù cũ), hiển
+    // thị NGAY LẬP TỨC (gần như 0 giây) thay vì bắt người dùng chờ gọi Google
+    // Sheet. Sau đó mới âm thầm gọi server làm mới dữ liệu ở NỀN (không chặn
+    // giao diện). Chỉ khi sheet CHƯA từng có cache (lần đầu) mới phải hiện
+    // skeleton chờ tải thật.
+    window.addEventListener('load', function() {
+      try {
+        var sel = document.getElementById('sheetSelect');
+        sel.innerHTML = '';
+        DANH_SACH_NAM.forEach(function(ten) {
+          var opt = document.createElement('option');
+          opt.value = ten; opt.textContent = ten;
+          sel.appendChild(opt);
+        });
+        sel.value = '2026';
+
+        const cacheKey = "cache_data_2026";
+        const rawCache = localStorage.getItem(cacheKey);
+        if (rawCache) {
+          apDungCache_('2026', rawCache);
+          dongBoMotSheetTuServer('2026', false, true); // làm mới ngầm, không chặn UI
+        } else {
+          dongBoMotSheetTuServer('2026', true, false); // lần đầu, chưa có gì để hiện tạm -> chờ thật
+        }
+      } catch(e) {
+        document.getElementById('ketQua').innerHTML = '<div class="empty-msg"><span class="icon">⚠️</span>Lỗi khởi tạo: ' + e.message + '</div>';
+      }
+    });
+
+    function chuyenTab(tab) {
+      tabHienTai = tab;
+      document.getElementById('tabChuaXuat').classList.toggle('active', tab === 'chuaXuat');
+      document.getElementById('tabDaXuat').classList.toggle('active', tab === 'daXuat');
+      document.getElementById('tabChiPhi').classList.toggle('active', tab === 'chiPhi');
+      document.getElementById('tabNcc').classList.toggle('active', tab === 'ncc');
+      render();
+    }
+
+    /**
+     * Được gọi khi người dùng đổi dropdown sang 1 sheet năm khác (2025/2024).
+     * - Có cache -> hiện NGAY LẬP TỨC, đồng thời âm thầm làm mới ở nền.
+     * - Chưa có cache (lần đầu bấm qua tab này) -> hiện skeleton, gọi thật.
+     */
+    function chonSheet() {
+      const tenSheet = document.getElementById('sheetSelect').value;
+      const cacheKey = "cache_data_" + tenSheet;
+      const rawCache = localStorage.getItem(cacheKey);
+
+      if (rawCache) {
+        apDungCache_(tenSheet, rawCache);
+        dongBoMotSheetTuServer(tenSheet, false, true); // làm mới ngầm
+      } else {
+        dongBoMotSheetTuServer(tenSheet, true, false); // lần đầu, chờ thật
+      }
+    }
+
+    function apDungCache_(tenSheet, rawCache) {
+      try {
+        const cacheObj = JSON.parse(rawCache);
+        const formattedTime = new Date(cacheObj.timestamp).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+        document.getElementById('syncTime').innerHTML = '✅ [' + tenSheet + '] Đã đồng bộ lúc: <b>' + formattedTime + '</b>';
+
+        const tuKhoa = document.getElementById('tuKhoa').value;
+        ketQuaHienTai = locDuLieuCucBo(cacheObj.data, tuKhoa);
+        render();
+      } catch (e) {
+        dongBoMotSheetTuServer(tenSheet, true, false);
+      }
+    }
+
+    /**
+     * Gọi server lấy dữ liệu THẬT của ĐÚNG 1 sheet.
+     * @param hienThiLoading  true = hiển thị skeleton chờ (dùng khi CHƯA có cache / bấm nút Đồng bộ thủ công)
+     * @param imLang          true = chạy NỀN, chỉ hiện chấm nhỏ "Đang đồng bộ" ở header, không chặn UI đang xem
+     * @param maHDDangSuaParam (tuỳ chọn) Mã HĐ nháp đang sửa - truyền xuống server để loại trừ chính hoá
+     *        đơn này khỏi phép tính tồn kho đã giữ chỗ (cho phép tăng số lượng khi sửa)
+     */
+    function dongBoMotSheetTuServer(tenSheet, hienThiLoading, imLang, maHDDangSuaParam) {
+      if (DANH_SACH_NAM.indexOf(tenSheet) === -1) {
+        document.getElementById('ketQua').innerHTML = '<div class="empty-msg"><span class="icon">⚠️</span>Sheet không hợp lệ: ' + tenSheet + '</div>';
+        return;
+      }
+
+      const btn = document.getElementById('btnDongBo');
+      const originalText = btn.innerHTML;
+      const syncIndicator = document.getElementById('syncIndicator');
+
+      if (imLang) {
+        syncIndicator.classList.add('show');
+      } else {
+        btn.disabled = true;
+        btn.innerHTML = '🔄 Đang tải...';
+        if (hienThiLoading) {
+          document.getElementById('ketQua').innerHTML = SKELETON_HTML;
+          document.getElementById('syncTime').innerHTML = '⏳ Đang tải dữ liệu sheet ' + tenSheet + '...';
+        }
+      }
+
+      google.script.run.withSuccessHandler(function (kq) {
+        syncIndicator.classList.remove('show');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+
+        if (kq.error) {
+          if (!imLang) {
+            document.getElementById('ketQua').innerHTML = '<div class="empty-msg"><span class="icon">⚠️</span>Lỗi đồng bộ: ' + kq.error + '</div>';
+          }
+          document.getElementById('syncTime').innerHTML = '⚠️ Đồng bộ thất bại';
+          return;
+        }
+
+        const now = Date.now();
+        const cacheObj = { timestamp: now, data: kq.data };
+        // Khi đang sửa 1 hoá đơn (có maHDDangSuaParam), dữ liệu đã loại trừ
+        // chính hoá đơn đó -> KHÔNG lưu đè vào cache chung để tránh sai lệch
+        // cho những lần xem bình thường sau này.
+        if (!maHDDangSuaParam) {
+          localStorage.setItem("cache_data_" + tenSheet, JSON.stringify(cacheObj));
+        }
+
+        // Chỉ render nếu người dùng vẫn đang chọn đúng sheet này
+        if (document.getElementById('sheetSelect').value === tenSheet) {
+          const formattedTime = new Date(cacheObj.timestamp).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+          document.getElementById('syncTime').innerHTML = '✅ [' + tenSheet + '] Đã đồng bộ lúc: <b>' + formattedTime + '</b>';
+          const tuKhoa = document.getElementById('tuKhoa').value;
+          ketQuaHienTai = locDuLieuCucBo(cacheObj.data, tuKhoa);
+          render();
+        }
+      }).withFailureHandler(function (err) {
+        syncIndicator.classList.remove('show');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        if (!imLang) {
+          document.getElementById('ketQua').innerHTML = '<div class="empty-msg"><span class="icon">⚠️</span>Lỗi: ' + err.message + '</div>';
+        }
+        document.getElementById('syncTime').innerHTML = '⚠️ Đồng bộ thất bại';
+      }).dongBoMotSheet(tenSheet, maHDDangSuaParam || null);
+    }
+
+    /**
+     * Nút "🔄 Đồng bộ" = người dùng CHỦ ĐỘNG yêu cầu làm mới ngay sheet đang
+     * chọn -> hiển thị skeleton chờ (không phải chạy ngầm) để họ biết chắc
+     * đã có dữ liệu mới nhất.
+     */
+    function dongBoDuLieu() {
+      const tenSheet = document.getElementById('sheetSelect').value;
+      dongBoMotSheetTuServer(tenSheet, true, false, maHDDangSua);
+    }
+
+    // NÂNG CẤP (17/07) #8/#9: cacheObj.data giờ có thêm mảng "chiPhi" (mặt
+    // hàng PHÍ/B.L/CƯỚC, tách riêng khỏi hàng hoá) và các item trong
+    // "chuaXuat" có thể đã được server tự khấu trừ tồn kho theo lô hàng
+    // trùng ở năm khác (xem field daXuatONamKhac / tonKhoGocTruocKhauTruLienNam).
+    // Hàm lọc cục bộ này phải lọc đủ cả 3 mảng để không mất dữ liệu khi tìm
+    // kiếm bằng dữ liệu cache (không gọi lại server).
+    function locDuLieuCucBo(cacheData, tuKhoa) {
+      const tk = (tuKhoa || "").trim().toLowerCase();
+      if (!tk) return cacheData;
+
+      const chuanHoa = function(s) {
+        return String(s || "").toLowerCase().replace(/\s+/g, "").replace(/hđ|hd/g, "");
+      };
+      const tkChuan = chuanHoa(tk);
+
+      const chuaXuatLoc = [];
+      const daXuatLoc = [];
+      const chiPhiLoc = [];
+
+      (cacheData.chuaXuat || []).forEach(function (item) {
+        const moTa = String(item.moTa || "");
+        const soHDNhap = String(item.soHDNhap || "");
+        const soHDXuat = String(item.soHDXK || "");
+
+        const matchMoTa = moTa.toLowerCase().indexOf(tk) !== -1;
+        const matchHDXuat = soHDXuat !== "" && (soHDXuat.toLowerCase().indexOf(tk) !== -1 || chuanHoa(soHDXuat) === tkChuan);
+        const matchHDNhap = soHDNhap !== "" && (soHDNhap.toLowerCase().indexOf(tk) !== -1 || chuanHoa(soHDNhap) === tkChuan);
+
+        if (matchMoTa || matchHDXuat || matchHDNhap) {
+          chuaXuatLoc.push(item);
+        }
+      });
+
+      (cacheData.daXuat || []).forEach(function (item) {
+        const moTa = String(item.moTa || "");
+        const soHDNhap = String(item.soHDNhap || "");
+        const soHDXuat = String(item.soHDXK || "");
+
+        const matchMoTa = moTa.toLowerCase().indexOf(tk) !== -1;
+        const matchHDXuat = soHDXuat !== "" && (soHDXuat.toLowerCase().indexOf(tk) !== -1 || chuanHoa(soHDXuat) === tkChuan);
+        const matchHDNhap = soHDNhap !== "" && (soHDNhap.toLowerCase().indexOf(tk) !== -1 || chuanHoa(soHDNhap) === tkChuan);
+
+        if (matchMoTa || matchHDXuat || matchHDNhap) {
+          if (soHDXuat !== "" && soHDXuat !== "Chưa rõ HĐ" && /\d+/.test(soHDXuat)) {
+            daXuatLoc.push(item);
+          } else {
+            chuaXuatLoc.push(item);
+          }
+        }
+      });
+
+      (cacheData.chiPhi || []).forEach(function (item) {
+        const moTa = String(item.moTa || "");
+        const soHDNhap = String(item.soHDNhap || "");
+        const soHDXuat = String(item.soHDXK || "");
+
+        const matchMoTa = moTa.toLowerCase().indexOf(tk) !== -1;
+        const matchHDXuat = soHDXuat !== "" && (soHDXuat.toLowerCase().indexOf(tk) !== -1 || chuanHoa(soHDXuat) === tkChuan);
+        const matchHDNhap = soHDNhap !== "" && (soHDNhap.toLowerCase().indexOf(tk) !== -1 || chuanHoa(soHDNhap) === tkChuan);
+
+        if (matchMoTa || matchHDXuat || matchHDNhap) {
+          chiPhiLoc.push(item);
+        }
+      });
+
+      return { chuaXuat: chuaXuatLoc, daXuat: daXuatLoc, chiPhi: chiPhiLoc };
+    }
+
+    function timKiem() {
+      const tenSheet = document.getElementById('sheetSelect').value;
+      const cacheKey = "cache_data_" + tenSheet;
+      const rawCache = localStorage.getItem(cacheKey);
+
+      if (rawCache) {
+        apDungCache_(tenSheet, rawCache);
+      } else {
+        dongBoMotSheetTuServer(tenSheet, true, false);
+      }
+    }
+
+    /**
+     * Chuyển chuỗi ngày "dd/MM/yyyy" (hoặc Date-like) thành số NGÀY đã trôi
+     * qua tính đến HÔM NAY. Trả về null nếu không đọc được ngày (để không
+     * cảnh báo nhầm khi thiếu dữ liệu).
+     *
+     * SỬA LỖI (18/07): "13/09/25" bị hiểu nhầm thành năm 1925 thay vì 2025
+     * -> tồn kho hiện sai "100.9 năm". Nguyên nhân: khi tách "25" ra làm
+     * năm rồi gọi new Date(year, month, day) với year trong khoảng 0-99,
+     * JavaScript TỰ ĐỘNG cộng thêm 1900 (hành vi mặc định của Date, không
+     * phải lỗi cú pháp). Đã sửa: nếu year < 100 thì cộng thêm 2000 TRƯỚC
+     * khi tạo Date, để "25" luôn hiểu là 2025 (dữ liệu hệ thống chỉ nằm
+     * trong khoảng năm 2000-2099, không có dữ liệu thế kỷ trước).
+     */
+    function tinhSoNgayTuNgay_(ngayStr) {
+      if (!ngayStr) return null;
+      let d = null;
+      const parts = String(ngayStr).split('/');
+      if (parts.length === 3) {
+        const day = parseInt(parts[0], 10), month = parseInt(parts[1], 10);
+        let year = parseInt(parts[2], 10);
+        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+          if (year < 100) year += 2000; // "25" -> 2025, "99" -> 2099
+          d = new Date(year, month - 1, day);
+        }
+      }
+      if (!d || isNaN(d.getTime())) {
+        const d2 = new Date(ngayStr);
+        if (!isNaN(d2.getTime())) d = d2;
+      }
+      if (!d || isNaN(d.getTime())) return null;
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      d.setHours(0,0,0,0);
+      return Math.round((today - d) / 86400000);
+    }
+
+    /**
+     * Trả về badge cảnh báo tồn kho lâu ngày dựa trên số ngày đã tồn:
+     * > 730 ngày (2 năm)  -> cảnh báo đỏ NGHIÊM TRỌNG
+     * > 365 ngày (1 năm)  -> cảnh báo cam
+     * còn lại             -> không cảnh báo (chuỗi rỗng)
+     */
+    function layBadgeTonLau_(soNgay) {
+      if (soNgay === null || soNgay === undefined) return '';
+      if (soNgay > 730) {
+        return '<span class="badge badge-old2">⚠️ Tồn ' + Math.floor(soNgay / 365) + ' năm ' + (soNgay % 365) + ' ngày</span>';
+      }
+      if (soNgay > 365) {
+        return '<span class="badge badge-old1">⏰ Tồn hơn 1 năm (' + soNgay + ' ngày)</span>';
+      }
+      return '';
+    }
+
+    function render() {
+      const el = document.getElementById('ketQua');
+
+      if (tabHienTai === 'chiPhi') {
+        renderChiPhi_(el);
+        return;
+      }
+
+      if (tabHienTai === 'ncc') {
+        const combined = [].concat(ketQuaHienTai.chuaXuat || [], ketQuaHienTai.daXuat || []);
+        const nccGroup = {};
+        combined.forEach(function (item) {
+          const nccName = String(item.ncc || "Không rõ NCC").trim();
+          const rawSoHD = String(item.soHDNhap || "").trim();
+          if (!rawSoHD) return;
+          const soHDKey = chuanHoaSoHDGop(rawSoHD);
+          if (!soHDKey) return;
+
+          if (!nccGroup[nccName]) {
+            nccGroup[nccName] = {};
+          }
+          if (!nccGroup[nccName][soHDKey]) {
+            nccGroup[nccName][soHDKey] = {
+              soHD: rawSoHD,
+              ngayNK: item.ngayNK,
+              tongTien: Number(item.tongTienHDNhap) || 0
+            };
+          }
+        });
+
+        const sortedNcc = Object.keys(nccGroup).sort();
+        if (sortedNcc.length === 0) {
+          el.innerHTML = '<div style="margin-bottom: 12px; display: flex; gap: 8px;">' +
+            '<button class="btn-ghost" onclick="doiChieuGmail()" style="flex: 1;">' +
+              '📧 Đối chiếu hoá đơn đầu vào từ Gmail' +
+            '</button>' +
+          '</div>' +
+          '<div class="empty-msg"><span class="icon">📭</span>Không có dữ liệu nhà cung cấp</div>';
+          return;
+        }
+
+        let htmlNcc = '<div style="margin-bottom: 12px; display: flex; gap: 8px;">' +
+          '<button class="btn-ghost" onclick="doiChieuGmail()" style="flex: 1;">' +
+            '📧 Đối chiếu hoá đơn đầu vào từ Gmail' +
+          '</button>' +
+        '</div>';
+
+        sortedNcc.forEach(function (nccName) {
+          const invoices = nccGroup[nccName];
+          const sortedInvoiceKeys = Object.keys(invoices).sort();
+
+          let invHtml = '';
+          sortedInvoiceKeys.forEach(function (soHDKey) {
+            const inv = invoices[soHDKey];
+            invHtml += '<div style="display: flex; justify-content: space-between; font-size: 13px; background: #f8f9fb; padding: 9px 11px; border-radius: 8px; margin-bottom: 5px; flex-wrap: wrap; gap: 6px;">' +
+              '<span>📄 HĐ Số: <b>' + inv.soHD + '</b></span>' +
+              '<span>📅 Ngày: ' + (inv.ngayNK || '—') + '</span>' +
+              '<span style="color:#34a853; font-weight: 700;">' + formatSo(inv.tongTien) + ' VNĐ</span>' +
+            '</div>';
+          });
+
+          htmlNcc += '<div class="card" style="padding: 13px; margin-bottom: 10px;">' +
+            '<div style="font-weight: 800; font-size: 14.5px; color: var(--brand-navy2); margin-bottom: 9px; border-bottom: 1px solid var(--border); padding-bottom: 7px;">' +
+              '🏢 ' + nccName + ' (' + sortedInvoiceKeys.length + ' HĐ)' +
+            '</div>' +
+            '<div style="display: flex; flex-direction: column; gap: 2px;">' +
+              invHtml +
+            '</div>' +
+          '</div>';
+        });
+
+        el.innerHTML = htmlNcc;
+        return;
+      }
+
+      const list = ketQuaHienTai[tabHienTai] || [];
+      if (list.length === 0) {
+        el.innerHTML = '<div class="empty-msg"><span class="icon">📭</span>Không có sản phẩm nào</div>';
+        return;
+      }
+
+      let html = '';
+      if (tabHienTai === 'daXuat') {
+        const grouped = {};
+        list.forEach(function (sp) {
+          const rawSoHD = String(sp.soHDXK || "").trim();
+          const soHDKey = rawSoHD ? chuanHoaSoHDGop(rawSoHD) : "";
+          const key = soHDKey || "chuarohd";
+
+          if (!grouped[key]) {
+            grouped[key] = {
+              soHD: rawSoHD || "Chưa rõ HĐ",
+              ngayXHD: "Chưa rõ",
+              kh: "Chưa rõ",
+              vatRates: {},
+              items: [],
+              tongTruocThue: 0,
+              tongVat: 0,
+              tongSauThue: 0
+            };
+          }
+
+          if (grouped[key].ngayXHD === "Chưa rõ" && sp.ngayXHD) {
+            grouped[key].ngayXHD = sp.ngayXHD;
+          }
+          if (grouped[key].kh === "Chưa rõ" && sp.kh) {
+            grouped[key].kh = sp.kh;
+          }
+
+          const qty = Number(sp.slXK) || 0;
+          const price = Number(sp.giaXuat) || 0;
+          const amountBeforeTax = qty * price;
+
+          let vatPercent = 0;
+          if (sp.vat) {
+            const parsed = parseFloat(String(sp.vat).replace("%", "").trim());
+            if (!isNaN(parsed)) {
+              vatPercent = parsed;
+              grouped[key].vatRates[parsed + "%"] = true;
+            }
+          }
+          const vatAmount = amountBeforeTax * (vatPercent / 100);
+          const amountAfterTax = amountBeforeTax + vatAmount;
+
+          grouped[key].tongTruocThue += amountBeforeTax;
+          grouped[key].tongVat += vatAmount;
+          grouped[key].tongSauThue += amountAfterTax;
+
+          grouped[key].items.push({
+            moTa: sp.moTa,
+            dvt: sp.dvt,
+            slXK: sp.slXK,
+            giaXuat: sp.giaXuat,
+            vat: sp.vat,
+            amountBeforeTax: amountBeforeTax,
+            vatAmount: vatAmount,
+            amountAfterTax: amountAfterTax,
+            ncc: sp.ncc,
+            soHDNhap: sp.soHDNhap,
+            ngayNK: sp.ngayNK
+          });
+        });
+
+        const sortedKeys = Object.keys(grouped).filter(function(key) {
+          return key !== "chuarohd" && key.trim() !== "";
+        }).sort(function (a, b) {
+          const numA = parseInt(a.replace(/\D/g, ''), 10);
+          const numB = parseInt(b.replace(/\D/g, ''), 10);
+          if (!isNaN(numA) && !isNaN(numB)) {
+            return numB - numA;
+          }
+          return b.localeCompare(a);
+        });
+
+        const thongKe = {
+          nam: { count: 0, total: 0 },
+          quy: {},
+          thang: {}
+        };
+
+        const sheetYear = document.getElementById('sheetSelect').value || String(new Date().getFullYear());
+
+        sortedKeys.forEach(function (key) {
+          const hd = grouped[key];
+          const timeInfo = phanTichNgay(hd.ngayXHD) || { thang: "Chưa rõ", nam: Number(sheetYear), quy: "Chưa rõ" };
+
+          thongKe.nam.count++;
+          thongKe.nam.total += hd.tongSauThue;
+
+          const qKey = timeInfo.quy === "Chưa rõ" ? "Chưa rõ Quý" : "Quý " + timeInfo.quy;
+          if (!thongKe.quy[qKey]) thongKe.quy[qKey] = { count: 0, total: 0 };
+          thongKe.quy[qKey].count++;
+          thongKe.quy[qKey].total += hd.tongSauThue;
+
+          const mKey = timeInfo.thang === "Chưa rõ" ? "Chưa rõ Tháng" : "Tháng " + timeInfo.thang;
+          if (!thongKe.thang[mKey]) thongKe.thang[mKey] = { count: 0, total: 0 };
+          thongKe.thang[mKey].count++;
+          thongKe.thang[mKey].total += hd.tongSauThue;
+        });
+
+        let qHtml = '';
+        Object.keys(thongKe.quy).filter(function(q){ return q.indexOf("Chưa rõ") === -1; }).sort().forEach(function(q) {
+          qHtml += ' <span style="display:inline-block; margin-right: 15px;">• <b>' + q + ':</b> ' + thongKe.quy[q].count + ' tờ (' + formatSo(thongKe.quy[q].total) + ' VNĐ)</span>';
+        });
+        if (thongKe.quy["Chưa rõ Quý"]) {
+          qHtml += ' <span style="display:inline-block; margin-right: 15px; color:#c5221f;">• <b>Chưa rõ Quý (thiếu Ngày xuất HĐ):</b> ' + thongKe.quy["Chưa rõ Quý"].count + ' tờ (' + formatSo(thongKe.quy["Chưa rõ Quý"].total) + ' VNĐ)</span>';
+        }
+
+        let mHtml = '';
+        Object.keys(thongKe.thang).filter(function(m){ return m.indexOf("Chưa rõ") === -1; }).sort(function(a, b) {
+          return Number(a.replace('Tháng ', '')) - Number(b.replace('Tháng ', ''));
+        }).forEach(function(m) {
+          mHtml += ' <div style="display:inline-block; width: 45%; margin-bottom: 4px; min-width: 140px;">• <b>' + m + ':</b> ' + thongKe.thang[m].count + ' tờ (' + formatSo(thongKe.thang[m].total) + ' VNĐ)</div>';
+        });
+        if (thongKe.thang["Chưa rõ Tháng"]) {
+          mHtml += ' <div style="display:inline-block; width: 100%; margin-bottom: 4px; color:#c5221f;">• <b>Chưa rõ Tháng (thiếu Ngày xuất HĐ):</b> ' + thongKe.thang["Chưa rõ Tháng"].count + ' tờ (' + formatSo(thongKe.thang["Chưa rõ Tháng"].total) + ' VNĐ)</div>';
+        }
+
+        html += '<div class="card" style="background: linear-gradient(135deg, #eef3ff, #f5f0ff); border: 1px solid #d7e3ff; padding: 14px; margin-bottom: 12px;">' +
+          '<div style="font-weight: 800; font-size: 14px; margin-bottom: 9px; color: var(--brand-navy2); display: flex; align-items: center; gap: 6px;">' +
+            '📊 THỐNG KÊ HOÁ ĐƠN ĐÃ XUẤT (' + sheetYear + ')' +
+          '</div>' +
+          '<div style="font-size: 13px; line-height: 1.6; color: #333;">' +
+            '<div>• <b>Cả năm ' + sheetYear + ':</b> ' + thongKe.nam.count + ' tờ HĐ — <b style="color:#c5221f;">' + formatSo(thongKe.nam.total) + '</b> VNĐ</div>' +
+            '<div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #c9d6f5;">' +
+              '<b>Theo Quý:</b><br>' + (qHtml || 'Chưa có dữ liệu') +
+            '</div>' +
+            '<div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #c9d6f5;">' +
+              '<b>Theo Tháng:</b><br>' + (mHtml || 'Chưa có dữ liệu') +
+            '</div>' +
+          '</div>' +
+        '</div>';
+
+        if (sortedKeys.length === 0) {
+          el.innerHTML = html + '<div class="empty-msg"><span class="icon">📭</span>Không có hoá đơn đã xuất nào</div>';
+          return;
+        }
+
+        sortedKeys.forEach(function (key, keyIdx) {
+          const hd = grouped[key];
+          const vatRateStr = Object.keys(hd.vatRates).join(', ') || '0%';
+
+          let itemsHtml = '<div style="overflow-x: auto; margin-top: 8px;">' +
+            '<table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; min-width: 600px; border: 1px solid var(--border);">' +
+              '<thead>' +
+                '<tr style="background: #f5f6fa; border-bottom: 2px solid var(--border);">' +
+                  '<th style="border: 1px solid var(--border); padding: 6px; font-weight: 700;">Tên mặt hàng (Mô tả)</th>' +
+                  '<th style="border: 1px solid var(--border); padding: 6px; font-weight: 700; text-align: center; width: 50px;">ĐVT</th>' +
+                  '<th style="border: 1px solid var(--border); padding: 6px; font-weight: 700; text-align: right; width: 60px;">SL xuất</th>' +
+                  '<th style="border: 1px solid var(--border); padding: 6px; font-weight: 700; text-align: right; width: 90px;">Đơn giá</th>' +
+                  '<th style="border: 1px solid var(--border); padding: 6px; font-weight: 700; text-align: right; width: 95px;">Trước thuế</th>' +
+                  '<th style="border: 1px solid var(--border); padding: 6px; font-weight: 700; text-align: center; width: 50px;">VAT</th>' +
+                  '<th style="border: 1px solid var(--border); padding: 6px; font-weight: 700;">Nhà cung cấp</th>' +
+                  '<th style="border: 1px solid var(--border); padding: 6px; font-weight: 700; text-align: center; width: 80px;">HĐ đầu vào</th>' +
+                '</tr>' +
+              '</thead>' +
+              '<tbody>';
+
+          hd.items.forEach(function (item) {
+            itemsHtml += '<tr style="border-bottom: 1px solid #f0f1f5;">' +
+              '<td style="border: 1px solid var(--border); padding: 6px; white-space: normal; word-break: break-all;">' + item.moTa + '</td>' +
+              '<td style="border: 1px solid var(--border); padding: 6px; text-align: center;">' + (item.dvt || '—') + '</td>' +
+              '<td style="border: 1px solid var(--border); padding: 6px; text-align: right;">' + formatSo(item.slXK) + '</td>' +
+              '<td style="border: 1px solid var(--border); padding: 6px; text-align: right;">' + formatSo(item.giaXuat) + '</td>' +
+              '<td style="border: 1px solid var(--border); padding: 6px; text-align: right;">' + formatSo(item.amountBeforeTax) + '</td>' +
+              '<td style="border: 1px solid var(--border); padding: 6px; text-align: center; color: #b06000;">' + (item.vat || '0%') + '</td>' +
+              '<td style="border: 1px solid var(--border); padding: 6px; color: #555;">' + (item.ncc || '—') + '</td>' +
+              '<td style="border: 1px solid var(--border); padding: 6px; text-align: center; font-weight: 700; color: var(--brand-blue);">' + (item.soHDNhap || '—') + '</td>' +
+            '</tr>';
+          });
+
+          itemsHtml += '</tbody>' +
+            '</table>' +
+          '</div>';
+
+          html += '<div class="invoice-card" onclick="toggleInvoice(\'inv-' + keyIdx + '\')" style="cursor: pointer; position: relative;">' +
+            '<div style="font-weight: 800; font-size: 14.5px; color: var(--brand-navy2); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">' +
+              '<span>📄 Số HĐ xuất: <span style="background: #e8f0fe; padding: 2px 9px; border-radius: 20px;">' + hd.soHD + '</span></span>' +
+              '<span style="font-size: 12.5px; color: var(--text-muted); font-weight: 500;">📅 ' + hd.ngayXHD + '</span>' +
+            '</div>' +
+            '<div class="item-row"><span>Xuất cho:</span><span>' + hd.kh + '</span></div>' +
+            '<div class="item-row" style="margin-top: 4px;">' +
+              '<span>Tiền trước thuế:</span><span>' + formatSo(hd.tongTruocThue) + '</span>' +
+            '</div>' +
+            '<div class="item-row">' +
+              '<span>Thuế suất:</span><span style="color: #b06000;">' + vatRateStr + '</span>' +
+            '</div>' +
+            '<div class="item-row" style="padding-bottom: 6px; border-bottom: 1px dashed var(--border);">' +
+              '<span>Tổng tiền VAT:</span><span>' + formatSo(hd.tongVat) + '</span>' +
+            '</div>' +
+            '<div class="item-row" style="margin-top: 4px;">' +
+              '<span style="font-weight: 700; color: var(--text);">Tổng sau thuế:</span><span style="color: #c5221f; font-size: 15px;">' + formatSo(hd.tongSauThue) + ' VNĐ</span>' +
+            '</div>' +
+            '<div id="inv-' + keyIdx + '" class="invoice-details" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);" onclick="event.stopPropagation();">' +
+              '<div style="font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--brand-navy2); text-align: left; display: flex; align-items: center; gap: 4px;">' +
+                '📊 Bảng chi tiết mặt hàng & đầu vào (NCC):' +
+              '</div>' +
+              itemsHtml +
+            '</div>' +
+          '</div>';
+        });
+      } else {
+        // ----- TAB "Còn tồn kho": tính thêm số ngày tồn từ Ngày nhập kho,
+        // gắn badge cảnh báo nếu tồn quá lâu (> 1 năm / > 2 năm). Cũng
+        // hiển thị badge nếu tồn kho đã được TỰ ĐỘNG khấu trừ do phát
+        // hiện lô hàng trùng đã xuất hoá đơn ở 1 năm khác (17/07 #9) -----
+        let countTonLau = 0;
+        list.forEach(function (sp) {
+          const soNgay = tinhSoNgayTuNgay_(sp.ngayNK);
+          if (soNgay !== null && soNgay > 365) countTonLau++;
+        });
+
+        if (countTonLau > 0) {
+          html += '<div class="card" style="background:#fff3e0; border:1px solid #ffd9a6; padding:11px 13px; margin-bottom:10px; cursor:pointer;" onclick="moCanhBaoTonLau()">' +
+            '<div style="font-weight:800; color:#b06000; font-size:13.5px;">⏰ Có ' + countTonLau + ' sản phẩm tồn kho quá 1 năm chưa xuất HĐ trong sheet này</div>' +
+            '<div style="font-size:12px; color:#8a6100; margin-top:2px;">Bấm để xem chi tiết cảnh báo tồn kho lâu ngày (quét cả 3 năm)</div>' +
+          '</div>';
+        }
+
+        list.forEach(function (sp, idx) {
+          const dangChon = daChon[idx] !== undefined;
+          const giaXuatHienTai = dangChon ? daChon[idx].giaXuat : Math.round(Number(sp.giaNhap) * 1.1);
+          const tkKhaDung = (sp.tonKhoKhaDung !== undefined && sp.tonKhoKhaDung !== null) ? Number(sp.tonKhoKhaDung) : Number(sp.tonKho);
+          const badgeTon = (tkKhaDung < Number(sp.tonKho))
+            ? '<span class="badge badge-white">Tồn: ' + sp.tonKho + '</span><span class="badge" style="background:#fff3e0;color:#b06000;">Khả dụng: ' + tkKhaDung + '</span>'
+            : '<span class="badge badge-white">Còn tồn: ' + sp.tonKho + '</span>';
+          const soNgayTon = tinhSoNgayTuNgay_(sp.ngayNK);
+          const badgeTonLau = layBadgeTonLau_(soNgayTon);
+          const badgeLienNam = (sp.daXuatONamKhac && Number(sp.daXuatONamKhac) > 0)
+            ? '<span class="badge badge-lienam" title="Đã tự động trừ ' + formatSo(sp.daXuatONamKhac) + ' ' + (sp.dvt||'') + ' vì lô hàng này đã được xuất HĐ ở 1 năm khác">🔗 Đã khấu trừ liên năm: -' + formatSo(sp.daXuatONamKhac) + '</span>'
+            : '';
+          html += '<div class="item">' +
+            '<div class="item-title">' + sp.moTa +
+              badgeTon +
+              (sp.vat ? '<span class="badge badge-vat">VAT ' + sp.vat + '</span>' : '') +
+              badgeTonLau +
+              badgeLienNam +
+            '</div>' +
+            '<div class="item-row"><span>NCC</span><span>' + (sp.ncc || '') + '</span></div>' +
+            '<div class="item-row"><span>Số HĐ nhập</span><span>' + (sp.soHDNhap || '') + '</span></div>' +
+            '<div class="item-row"><span>Ngày nhập</span><span>' + (sp.ngayNK || '') + '</span></div>' +
+            '<div class="item-row"><span>Giá nhập</span><span>' + formatSo(sp.giaNhap) + '</span></div>' +
+            '<div class="item-row"><span>Tổng tiền HĐ nhập số ' + (sp.soHDNhap || '') + '</span><span>' + formatSo(sp.tongTienHDNhap) + '</span></div>' +
+            (badgeLienNam ? '<div class="item-row" style="color:#0f7b3f;"><span>⚠️ Ghi chú tồn kho</span><span>Đã tự trừ vì trùng lô đã bán ở năm khác</span></div>' : '') +
+            '<div class="qty-box">' +
+              '<label style="margin:0;">SL lấy:</label>' +
+              '<input type="number" id="sl-' + idx + '" min="0" max="' + tkKhaDung + '" value="' + (dangChon ? daChon[idx].soLuong : 0) + '" oninput="capNhatSL(' + idx + ', this.value)">' +
+              '<span style="font-size:12px;color:var(--text-muted);">/ ' + sp.dvt + '</span>' +
+            '</div>' +
+          '</div>';
+        });
+      }
+      el.innerHTML = html;
+    }
+
+    /**
+     * NÂNG CẤP (17/07) #8: hiển thị tab "Chi phí" - liệt kê các mặt hàng
+     * có mô tả chứa PHÍ / B.L / CƯỚC (server đã tách riêng sẵn, không còn
+     * lẫn trong "Còn tồn kho" / "Đã xuất hoá đơn"). Chỉ hiển thị để tra cứu,
+     * KHÔNG cho chọn vào giỏ hàng lập hoá đơn hàng hoá (đúng yêu cầu:
+     * tránh nhầm lẫn giữa phí dịch vụ và hàng hoá thật).
+     */
+    function renderChiPhi_(el) {
+      const list = ketQuaHienTai.chiPhi || [];
+      if (list.length === 0) {
+        el.innerHTML = '<div class="empty-msg"><span class="icon">📭</span>Không có mặt hàng chi phí nào (PHÍ/B.L/CƯỚC) trong sheet này</div>';
+        return;
+      }
+
+      let html = '<div class="card" style="background:#eef1ff; border:1px solid #d7dcff; padding:11px 13px; margin-bottom:10px;">' +
+        '<div style="font-weight:800; color:#3730a3; font-size:13.5px;">ℹ️ Các mặt hàng có mô tả chứa "PHÍ" / "B/L" / "CƯỚC"</div>' +
+        '<div style="font-size:12px; color:#4b4f8a; margin-top:2px;">Đây là phí/dịch vụ đi kèm lô hàng (không phải hàng hoá), được tách riêng để không lẫn vào thống kê tồn kho / doanh thu hàng hoá.</div>' +
+      '</div>';
+
+      list.forEach(function (sp) {
+        const daXuat = sp.soHDXK && /\d+/.test(String(sp.soHDXK)) && String(sp.soHDXK).indexOf('Chưa rõ') === -1;
+        html += '<div class="item">' +
+          '<div class="item-title">' + sp.moTa +
+            '<span class="badge badge-chiphi">Chi phí</span>' +
+            (sp.vat ? '<span class="badge badge-vat">VAT ' + sp.vat + '</span>' : '') +
+            (daXuat ? '<span class="badge badge-done">Đã xuất HĐ</span>' : '<span class="badge badge-white">Chưa xuất HĐ</span>') +
+          '</div>' +
+          '<div class="item-row"><span>NCC</span><span>' + (sp.ncc || '') + '</span></div>' +
+          '<div class="item-row"><span>Số HĐ nhập</span><span>' + (sp.soHDNhap || '') + '</span></div>' +
+          '<div class="item-row"><span>Ngày nhập</span><span>' + (sp.ngayNK || '') + '</span></div>' +
+          (daXuat ? (
+            '<div class="item-row"><span>Xuất cho (KH)</span><span>' + (sp.kh || '') + '</span></div>' +
+            '<div class="item-row"><span>Số HĐ xuất</span><span>' + (sp.soHDXK || '') + '</span></div>' +
+            '<div class="item-row"><span>Ngày xuất</span><span>' + (sp.ngayXHD || '') + '</span></div>' +
+            '<div class="item-row"><span>Giá xuất</span><span>' + formatSo(sp.giaXuat) + '</span></div>'
+          ) : (
+            '<div class="item-row"><span>Giá nhập</span><span>' + formatSo(sp.giaNhap) + '</span></div>'
+          )) +
+        '</div>';
+      });
+
+      el.innerHTML = html;
+    }
+
+    function phanTichNgay(ngayStr) {
+      if (!ngayStr || ngayStr === "Chưa rõ") return null;
+      const parts = String(ngayStr).split('/');
+      if (parts.length === 3) {
+        const thang = parseInt(parts[1], 10);
+        const nam = parseInt(parts[2], 10);
+        if (!isNaN(thang) && !isNaN(nam)) {
+          return { thang: thang, nam: nam, quy: Math.ceil(thang / 3) };
+        }
+      }
+      const d = new Date(ngayStr);
+      if (!isNaN(d.getTime())) {
+        const thang = d.getMonth() + 1;
+        return { thang: thang, nam: d.getFullYear(), quy: Math.ceil(thang / 3) };
+      }
+      return null;
+    }
+
+    /**
+     * Khi người dùng nhập số lượng trong tab "Còn tồn kho": thêm/cập nhật
+     * mặt hàng đó vào giỏ hàng (daChon), mặc định VAT 10% cho mặt hàng mới.
+     * NÂNG CẤP: nếu SL nhập vượt tồn kho khả dụng, tự động nhảy về đúng
+     * SL tối đa có thể xuất (không chặn cứng, chỉ tự điều chỉnh).
+     */
+    function capNhatSL(idx, soLuong) {
+      let sl = Number(soLuong);
+      const sp = ketQuaHienTai.chuaXuat[idx];
+      const tonKhoKhaDung = (sp.tonKhoKhaDung !== undefined && sp.tonKhoKhaDung !== null)
+        ? Number(sp.tonKhoKhaDung) : Number(sp.tonKho);
+
+      if (sl > tonKhoKhaDung) {
+        alert('⚠️ Chỉ còn ' + tonKhoKhaDung + ' ' + sp.dvt + ' KHẢ DỤNG cho mặt hàng này\n' +
+              '(đã trừ số đã đặt ở các hoá đơn nháp khác chưa xử lý xong).\n' +
+              'Số lượng đã được TỰ ĐỘNG điều chỉnh về tối đa: ' + tonKhoKhaDung + '.');
+        sl = tonKhoKhaDung;
+        const slInput = document.getElementById('sl-' + idx);
+        if (slInput) slInput.value = sl;
+      }
+      if (sl < 0) {
+        sl = 0;
+        const slInput = document.getElementById('sl-' + idx);
+        if (slInput) slInput.value = sl;
+      }
+
+      if (sl > 0) {
+        if (!daChon[idx]) {
+          // SỬA LỖI (16/07 muộn): KHÔNG được mặc định VAT = 10% cho mọi mặt
+          // hàng. Phải lấy ĐÚNG % thuế suất thật của chính mã sản phẩm đó
+          // (đã được server tính sẵn ở sp.vat, VD "8%" hoặc "10%"), tuyệt đối
+          // không "ghi đại" 1 mức chung.
+          const vatRaw = sp.vat;
+          if (vatRaw && String(vatRaw).indexOf('?') !== -1) {
+            alert('⚠️ KHÔNG XÁC ĐỊNH được chính xác thuế suất VAT của sản phẩm:\n"' + sp.moTa + '"\n' +
+              '(giá trị gốc trên sheet: ' + vatRaw + ').\n\n' +
+              'Vui lòng kiểm tra lại cột VAT trên sheet dữ liệu gốc trước khi thêm mặt hàng này vào hoá đơn.');
+            const slInput = document.getElementById('sl-' + idx);
+            if (slInput) slInput.value = 0;
+            return;
+          }
+          const vatSanPham = layVATSo_(vatRaw);
+
+          // NÂNG CẤP: CHẶN GỘP CHUNG NHIỀU MỨC THUẾ SUẤT VAT KHÁC NHAU TRÊN
+          // CÙNG 1 HOÁ ĐƠN NHÁP. Mỗi tờ hoá đơn CHỈ được DUY NHẤT 1 mức thuế
+          // suất (toàn bộ 8% hoặc toàn bộ 10%), không được vừa 8% vừa 10%.
+          // Nếu mặt hàng đang thêm có VAT khác với các mặt hàng đã có sẵn
+          // trong giỏ hàng -> CẢNH BÁO NGAY LẬP TỨC và KHÔNG cho thêm vào.
+          const xungDot = timXungDotVAT_(vatSanPham, idx);
+          if (xungDot) {
+            alert('🚫 KHÔNG THỂ THÊM SẢN PHẨM NÀY VÀO HOÁ ĐƠN!\n\n' +
+              'Sản phẩm "' + sp.moTa + '" chịu thuế suất VAT ' + vatSanPham + '%,\n' +
+              'trong khi hoá đơn nháp hiện tại đang có sản phẩm "' + xungDot.moTa + '" chịu thuế suất ' + xungDot.vatBan + '%.\n\n' +
+              '⚠️ Mỗi hoá đơn CHỈ được xuất DUY NHẤT 1 mức thuế suất VAT (toàn bộ 8% hoặc toàn bộ 10%), KHÔNG được gộp chung nhiều mức thuế suất trên cùng 1 tờ hoá đơn.\n\n' +
+              'Vui lòng lập RIÊNG 1 hoá đơn khác cho các mặt hàng chịu thuế suất ' + vatSanPham + '%.');
+            const slInput = document.getElementById('sl-' + idx);
+            if (slInput) slInput.value = 0;
+            return;
+          }
+
+          const giaXuat = Math.round(Number(sp.giaNhap) * 1.1);
+          daChon[idx] = {
+            moTa: sp.moTa, dvt: sp.dvt, soLuong: sl, giaXuat: giaXuat, giaNhap: sp.giaNhap,
+            vatBan: vatSanPham, tonKho: sp.tonKho, tonKhoKhaDung: tonKhoKhaDung, soHDNhap: sp.soHDNhap, ncc: sp.ncc, ngayNK: sp.ngayNK,
+            tongTienHDNhap: sp.tongTienHDNhap, tenSheet: document.getElementById('sheetSelect').value
+          };
+        } else {
+          daChon[idx].soLuong = sl;
+          daChon[idx].tonKhoKhaDung = tonKhoKhaDung;
+        }
+      } else {
+        delete daChon[idx];
+      }
+      capNhatThanhTBar();
+    }
+
+    /**
+     * Chuyển chuỗi VAT (VD "8%", "10%", "0%", hoặc số) thành số nguyên %.
+     * Trả về 0 nếu không đọc được (an toàn, không suy đoán bừa).
+     */
+    function layVATSo_(vatStr) {
+      if (vatStr === null || vatStr === undefined || vatStr === '') return 0;
+      const parsed = parseFloat(String(vatStr).replace('%', '').trim());
+      return isNaN(parsed) ? 0 : parsed;
+    }
+
+    /**
+     * KIỂM TRA XUNG ĐỘT THUẾ SUẤT VAT: 1 hoá đơn nháp CHỈ được phép có
+     * DUY NHẤT 1 mức thuế suất VAT cho toàn bộ các mặt hàng (không được
+     * vừa 8% vừa 10% trên cùng 1 tờ). Trả về mặt hàng đầu tiên trong giỏ
+     * hàng có mức VAT KHÁC với vatMoi (nếu có xung đột), hoặc null nếu
+     * không có xung đột (giỏ hàng trống hoặc toàn bộ cùng 1 mức thuế suất).
+     * boQuaKey (tuỳ chọn): bỏ qua chính dòng đang sửa (khi đổi VAT ngay
+     * trên dòng đó trong giỏ hàng), tránh tự so sánh với chính nó.
+     */
+    function timXungDotVAT_(vatMoi, boQuaKey) {
+      const keys = Object.keys(daChon);
+      for (let i = 0; i < keys.length; i++) {
+        const k = keys[i];
+        if (boQuaKey !== undefined && boQuaKey !== null && String(k) === String(boQuaKey)) continue;
+        const sp = daChon[k];
+        const vatHienCo = (sp.vatBan !== undefined && sp.vatBan !== null) ? Number(sp.vatBan) : 0;
+        if (vatHienCo !== Number(vatMoi)) {
+          return sp;
+        }
+      }
+      return null;
+    }
+
+    /**
+     * Vẽ lại khung "Giỏ hàng đã chọn": mỗi dòng có thể sửa SL / giá / VAT
+     * hoặc xoá hẳn khỏi giỏ hàng. Đây là nơi DUY NHẤT hiển thị đầy đủ các
+     * mặt hàng đang có trong hoá đơn (kể cả các dòng nạp lại khi bấm "Sửa
+     * hoá đơn nháp"), khắc phục lỗi trước đây không thể xem/sửa lại.
+     */
+    function renderGioHang() {
+      const panel = document.getElementById('panelGioHang');
+      const el = document.getElementById('dsGioHang');
+      const keys = Object.keys(daChon);
+
+      document.getElementById('soLuongGioHang').textContent = keys.length;
+
+      if (keys.length === 0) { panel.style.display = 'none'; return; }
+      panel.style.display = 'block';
+
+      let html = '';
+      keys.forEach(function (k) {
+        const sp = daChon[k];
+        const vatVal = (sp.vatBan !== undefined && sp.vatBan !== null) ? Number(sp.vatBan) : 0;
+        const maxTon = (sp.tonKhoKhaDung !== undefined && sp.tonKhoKhaDung !== null) ? Number(sp.tonKhoKhaDung) : Number(sp.tonKho);
+        html += '<div class="cart-row">' +
+          '<div class="cart-row-title">' +
+            '<span>' + sp.moTa + '</span>' +
+            '<span class="x-remove" onclick="xoaKhoiGioHang(\'' + k + '\')">✕</span>' +
+          '</div>' +
+          '<div class="cart-row-fields">' +
+            '<label>SL:</label>' +
+            '<input type="number" id="cartsl-' + k + '" min="1" max="' + (isFinite(maxTon) ? maxTon : '') + '" value="' + sp.soLuong + '" style="width:64px;" oninput="suaSLGioHang(\'' + k + '\', this.value)">' +
+            '<label>Giá bán:</label>' +
+            '<input type="text" value="' + formatSo(sp.giaXuat) + '" style="width:100px;" oninput="suaGiaGioHang(\'' + k + '\', this.value)">' +
+            '<label>VAT:</label>' +
+            '<select onchange="suaVATGioHang(\'' + k + '\', this.value)" style="width:70px;">' +
+              '<option value="0" ' + (vatVal === 0 ? 'selected' : '') + '>0%</option>' +
+              '<option value="8" ' + (vatVal === 8 ? 'selected' : '') + '>8%</option>' +
+              '<option value="10" ' + (vatVal === 10 ? 'selected' : '') + '>10%</option>' +
+            '</select>' +
+          '</div>' +
+        '</div>';
+      });
+      el.innerHTML = html;
+    }
+
+    function xoaKhoiGioHang(k) {
+      delete daChon[k];
+      capNhatThanhTBar();
+      render(); // cập nhật lại ô SL ở tab "Còn tồn kho" nếu mặt hàng đó nằm trong list hiện tại
+    }
+
+    /**
+     * NÂNG CẤP: khi sửa số lượng trực tiếp trong "Giỏ hàng đã chọn", nếu
+     * người dùng nhập vượt quá tồn kho khả dụng của mặt hàng đó, hệ thống
+     * TỰ ĐỘNG nhảy về đúng số lượng tối đa có thể xuất (không cho âm kho),
+     * đồng thời cập nhật lại ô input để người dùng thấy ngay giá trị đã
+     * được điều chỉnh.
+     */
+    function suaSLGioHang(k, gt) {
+      let sl = Number(gt) || 0;
+      if (sl <= 0) { xoaKhoiGioHang(k); return; }
+
+      const sp = daChon[k];
+      const maxTon = (sp.tonKhoKhaDung !== undefined && sp.tonKhoKhaDung !== null)
+        ? Number(sp.tonKhoKhaDung) : Number(sp.tonKho);
+
+      if (isFinite(maxTon) && sl > maxTon) {
+        alert('⚠️ Chỉ còn tối đa ' + maxTon + ' ' + (sp.dvt || '') + ' KHẢ DỤNG cho mặt hàng này.\n' +
+              'Số lượng đã được TỰ ĐỘNG điều chỉnh về: ' + maxTon + '.');
+        sl = maxTon;
+      }
+
+      daChon[k].soLuong = sl;
+      capNhatThanhTBar();
+
+      // Đồng bộ lại giá trị hiển thị ở chính ô vừa sửa (phòng khi bị điều chỉnh)
+      const cartInput = document.getElementById('cartsl-' + k);
+      if (cartInput) cartInput.value = sl;
+      // Đồng bộ lại ô SL ở tab "Còn tồn kho" nếu mặt hàng đó đang nằm trong list (key là số idx)
+      const slInputTab = document.getElementById('sl-' + k);
+      if (slInputTab) slInputTab.value = sl;
+    }
+
+    function suaGiaGioHang(k, gt) {
+      const gia = Number(String(gt).replace(/\D/g, "")) || 0;
+      daChon[k].giaXuat = gia;
+      capNhatThanhTBar();
+    }
+
+    function suaVATGioHang(k, gt) {
+      const vatMoi = Number(gt) || 0;
+
+      // NÂNG CẤP: chặn đổi thuế suất VAT của 1 dòng nếu làm hoá đơn bị
+      // GỘP CHUNG nhiều mức thuế suất khác nhau.
+      const xungDot = timXungDotVAT_(vatMoi, k);
+      if (xungDot) {
+        alert('🚫 KHÔNG THỂ đổi thuế suất VAT cho mặt hàng này!\n\n' +
+          'Bạn đang chọn thuế suất ' + vatMoi + '%,\n' +
+          'trong khi hoá đơn nháp hiện tại đang có sản phẩm "' + xungDot.moTa + '" chịu thuế suất ' + xungDot.vatBan + '%.\n\n' +
+          '⚠️ Mỗi hoá đơn CHỈ được xuất DUY NHẤT 1 mức thuế suất VAT, KHÔNG được gộp chung nhiều mức thuế suất trên cùng 1 tờ hoá đơn.');
+        renderGioHang(); // vẽ lại để trả dropdown về đúng giá trị cũ
+        return;
+      }
+
+      daChon[k].vatBan = vatMoi;
+      capNhatThanhTBar();
+    }
+
+    /**
+     * Cập nhật thanh tổng dưới cùng: số lượng sản phẩm đã chọn, tổng tiền
+     * trước thuế, tổng tiền VAT, tổng tiền sau thuế. Đồng thời vẽ lại giỏ
+     * hàng chi tiết (renderGioHang).
+     */
+    function capNhatThanhTBar() {
+      const keys = Object.keys(daChon);
+      const soLuongChonSpan = document.getElementById('soLuongChon');
+      if (soLuongChonSpan) soLuongChonSpan.textContent = keys.length;
+
+      let tongTruocThue = 0;
+      let tongVAT = 0;
+      keys.forEach(function (k) {
+        const sp = daChon[k];
+        const tt = (Number(sp.soLuong) || 0) * (Number(sp.giaXuat) || 0);
+        const vatPercent = (sp.vatBan !== undefined && sp.vatBan !== null) ? Number(sp.vatBan) : 0;
+        tongTruocThue += tt;
+        tongVAT += tt * (vatPercent / 100);
+      });
+      const tongSauThue = tongTruocThue + tongVAT;
+
+      document.getElementById('ttTruocThue').textContent = formatSo(tongTruocThue);
+      document.getElementById('ttVAT').textContent = formatSo(tongVAT);
+      document.getElementById('ttSauThue').textContent = formatSo(tongSauThue);
+
+      document.getElementById('summaryBar').classList.toggle('show', keys.length > 0);
+      renderGioHang();
+    }
+
+    function taoHoaDon() {
+      const tenKH = document.getElementById('tenKH').value.trim();
+      if (!tenKH) { alert('Vui lòng nhập tên khách hàng'); return; }
+      const danhSach = Object.keys(daChon).map(function (k) { return daChon[k]; });
+      if (danhSach.length === 0) { alert('Chưa chọn sản phẩm nào'); return; }
+
+      // CHỐT CHẶN CUỐI CÙNG (phòng dữ liệu cũ/lỗi): đảm bảo TOÀN BỘ hoá đơn
+      // chỉ có DUY NHẤT 1 mức thuế suất VAT trước khi gửi lên server.
+      const vatSet = {};
+      danhSach.forEach(function (sp) { vatSet[Number(sp.vatBan) || 0] = true; });
+      const cacMucVAT = Object.keys(vatSet);
+      if (cacMucVAT.length > 1) {
+        alert('🚫 HOÁ ĐƠN ĐANG BỊ GỘP NHIỀU MỨC THUẾ SUẤT VAT KHÁC NHAU (' + cacMucVAT.join('%, ') + '%)!\n\n' +
+          '⚠️ Mỗi hoá đơn CHỈ được xuất DUY NHẤT 1 mức thuế suất (toàn bộ 8% hoặc toàn bộ 10%), KHÔNG được gộp chung.\n\n' +
+          'Vui lòng xoá bớt các mặt hàng khác thuế suất trong giỏ hàng, hoặc tách thành nhiều hoá đơn riêng theo từng mức thuế suất.');
+        return;
+      }
+
+      const btn = document.getElementById('btnTaoHD');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Đang xử lý...';
+
+      const xongHandler = function (kq) {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+
+        if (kq.error) { alert('Lỗi: ' + kq.error); return; }
+
+        if (kq.loiTonKho) {
+          let msg = '⚠️ KHÔNG THỂ ' + (maHDDangSua ? 'CẬP NHẬT' : 'TẠO') + ' HOÁ ĐƠN - THIẾU TỒN KHO:\n\n';
+          kq.loiTonKho.forEach(function (l) {
+            msg += '• ' + l.moTa + '\n' +
+              '   Tồn kho gốc: ' + formatSo(l.tonKhoGoc) +
+              ' | Đã giữ chỗ ở HĐ nháp khác: ' + formatSo(l.daDatO_HDN_khac) +
+              ' | Còn lại thực tế: ' + formatSo(l.conLaiThucTe) +
+              ' | Bạn yêu cầu: ' + formatSo(l.soLuongYeuCau) + '\n\n';
+          });
+          alert(msg);
+          return;
+        }
+
+        // Hiển thị modal xem hoá đơn TẠM để chụp màn hình - KHÔNG lưu Drive,
+        // KHÔNG xuất PDF. Đóng modal lại là dữ liệu hiển thị biến mất luôn.
+        hienThiHoaDonTamThoi(kq);
+
+        daChon = {};
+        maHDDangSua = null;
+        document.getElementById('dangSuaBanner').style.display = 'none';
+        document.getElementById('tenKH').value = '';
+        btn.innerHTML = '✅ Tạo hoá đơn nháp (<span id="soLuongChon">0</span> sản phẩm)';
+        capNhatThanhTBar();
+        render();
+      };
+
+      const loiHandler = function (err) {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        alert('Lỗi: ' + err.message);
+      };
+
+      if (maHDDangSua) {
+        google.script.run.withSuccessHandler(xongHandler).withFailureHandler(loiHandler)
+          .capNhatHoaDonNhap(maHDDangSua, tenKH, danhSach);
+      } else {
+        google.script.run.withSuccessHandler(xongHandler).withFailureHandler(loiHandler)
+          .taoHoaDonNhap(tenKH, danhSach);
+      }
+    }
+
+    /**
+     * Hiển thị modal hoá đơn TẠM ngay trên điện thoại (có logo, danh sách
+     * mặt hàng dạng BẢNG CÓ KẺ Ô - table-layout: fixed + word-break để chữ
+     * LUÔN NẰM GỌN TRONG Ô, tự động xuống dòng khi mô tả dài, không bao giờ
+     * tràn ra ngoài hay bị cắt mất chữ) để người dùng chụp màn hình gửi
+     * khách. Không gọi server thêm lần nào, không lưu bất kỳ đâu - đóng
+     * modal lại là nội dung biến mất hoàn toàn khỏi màn hình.
+     */
+    function hienThiHoaDonTamThoi(kq) {
+      let rows = '';
+      let stt = 0;
+      (kq.danhSachSanPham || []).forEach(function (sp) {
+        stt++;
+        const tt = (Number(sp.soLuong) || 0) * (Number(sp.giaXuat) || 0);
+        const vatPercent = (sp.vatBan !== undefined && sp.vatBan !== null) ? Number(sp.vatBan) : 0;
+        rows += '<tr>' +
+          '<td>' + stt + '. ' + sp.moTa + '</td>' +
+          '<td class="center">' + (sp.dvt || '') + '</td>' +
+          '<td class="so">' + formatSo(sp.soLuong) + '</td>' +
+          '<td class="so">' + formatSo(sp.giaXuat) + '</td>' +
+          '<td class="center">' + vatPercent + '%</td>' +
+          '<td class="so">' + formatSo(tt) + '</td>' +
+        '</tr>';
+      });
+
+      const logoSrc = document.getElementById('logoNamTien').src;
+
+      document.getElementById('noiDungHoaDonTam').innerHTML =
+        '<div style="text-align:center; margin-bottom:12px;">' +
+          '<img src="' + logoSrc + '" style="width:56px; height:56px; object-fit:contain;">' +
+          '<div style="font-weight:800; font-size:18px; letter-spacing:0.5px; color:var(--brand-navy2); margin-top:8px;">NAM TIẾN</div>' +
+          '<div style="font-weight:700; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--brand-orange); margin-top:1px;">Phụ tùng chính hãng</div>' +
+          '<div style="font-weight:700; font-size:13.5px; color:var(--text-muted); margin-top:6px;">HOÁ ĐƠN NHÁP (báo giá) - Mã: ' + kq.maHD + '</div>' +
+        '</div>' +
+        '<div style="font-size:13.5px;"><b>Khách hàng:</b> ' + kq.tenKH + '</div>' +
+        '<div style="font-size:13.5px;"><b>Ngày lập:</b> ' + kq.ngayLap + '</div>' +
+        '<div class="hd-table-wrap">' +
+          '<table class="hd-table">' +
+            '<colgroup>' +
+              '<col style="width:33%">' +
+              '<col style="width:8%">' +
+              '<col style="width:9%">' +
+              '<col style="width:17%">' +
+              '<col style="width:8%">' +
+              '<col style="width:25%">' +
+            '</colgroup>' +
+            '<thead><tr>' +
+              '<th>Mô tả sản phẩm</th><th>ĐVT</th><th>SL</th><th>Đơn giá</th><th>VAT</th><th>Thành tiền</th>' +
+            '</tr></thead>' +
+            '<tbody>' + rows + '</tbody>' +
+          '</table>' +
+        '</div>' +
+        '<div style="margin-top:10px; font-size:13.5px; line-height:1.7;">' +
+          '<div style="display:flex;justify-content:space-between;"><span>Tổng tiền trước thuế:</span><b>' + formatSo(kq.tongTruocThue) + '</b></div>' +
+          '<div style="display:flex;justify-content:space-between;"><span>Tổng tiền VAT:</span><b style="color:#b06000;">' + formatSo(kq.tongVAT) + '</b></div>' +
+          '<div style="display:flex;justify-content:space-between; font-size:16.5px; margin-top:2px;"><span style="font-weight:700;">TỔNG CỘNG:</span><b style="color:#c5221f;">' + formatSo(kq.tongSauThue) + ' VNĐ</b></div>' +
+        '</div>' +
+        '<div style="font-style:italic; font-size:11px; color:#888; margin-top:12px; text-align:center;">' +
+          '(Hoá đơn nháp dùng để báo giá, không thay thế hoá đơn GTGT. Đóng cửa sổ này để ẩn, không lưu trữ.)' +
+        '</div>';
+
+      document.getElementById('modalHoaDon').style.display = 'block';
+    }
+
+    function dongModalHoaDon() {
+      document.getElementById('modalHoaDon').style.display = 'none';
+      document.getElementById('noiDungHoaDonTam').innerHTML = ''; // xoá luôn nội dung khỏi bộ nhớ hiển thị
+    }
+
+    function moTraCuuHDN() {
+      document.getElementById('panelTraCuuHDN').style.display = 'block';
+      document.getElementById('panelTonLau').style.display = 'none';
+      document.getElementById('panelNibot').style.display = 'none';
+      document.getElementById('ketQuaHDN').innerHTML = '';
+      document.getElementById('tuKhoaHDN').value = '';
+      document.getElementById('tuKhoaHDN').focus();
+    }
+
+    function dongTraCuuHDN() {
+      document.getElementById('panelTraCuuHDN').style.display = 'none';
+    }
+
+    function timKiemHDN() {
+      const tk = document.getElementById('tuKhoaHDN').value.trim();
+      const el = document.getElementById('ketQuaHDN');
+      el.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:12px;">⏳ Đang tìm...</div>';
+
+      google.script.run.withSuccessHandler(function (kq) {
+        if (kq.error) { el.innerHTML = '<div class="empty-msg">⚠️ ' + kq.error + '</div>'; return; }
+        const list = kq.danhSach || [];
+        if (list.length === 0) { el.innerHTML = '<div class="empty-msg">📭 Không tìm thấy hoá đơn nháp nào</div>'; return; }
+
+        let html = '';
+        list.forEach(function (hd) {
+          html += '<div style="border:1px solid var(--border); border-radius:10px; padding:10px; margin-bottom:8px; background:#fff;">' +
+            '<div style="font-weight:800; color:var(--brand-navy2);">🧾 ' + hd.maHD + '</div>' +
+            '<div style="font-size:13px; color:var(--text-muted); margin:4px 0;">' +
+              'Khách: <b>' + hd.tenKH + '</b> | Lập: ' + hd.ngayLap + (hd.ngaySua ? ' | Sửa: ' + hd.ngaySua : '') +
+            '</div>' +
+            '<div style="font-size:13px;">Số dòng: ' + hd.soDong + ' | Tổng tiền: <b style="color:#c5221f;">' + formatSo(hd.tongTien) + ' VNĐ</b></div>' +
+            '<button class="btn-primary" style="margin-top:8px;" onclick="suaHoaDonNhap(\'' + hd.maHD + '\')">✏️ Sửa hoá đơn này</button>' +
+          '</div>';
+        });
+        el.innerHTML = html;
+      }).withFailureHandler(function (err) {
+        el.innerHTML = '<div class="empty-msg">⚠️ Lỗi: ' + err.message + '</div>';
+      }).timKiemHoaDonNhap(tk);
+    }
+
+    /**
+     * ===== CẢNH BÁO TỒN KHO LÂU NGÀY (quét cả 3 sheet năm) =====
+     * Đồng bộ dữ liệu của cả 3 sheet ('2026','2025','2024'), gộp toàn bộ
+     * sản phẩm "Còn tồn kho" (chưa xuất HĐ, ĐÃ khấu trừ liên năm ở server),
+     * tính số ngày đã tồn từ Ngày nhập kho đến hôm nay, lọc những sản phẩm
+     * tồn quá 365 ngày (1 năm), sắp xếp tồn lâu nhất lên đầu, để không bị
+     * "sót" hàng tồn nhiều năm không xuất hoá đơn.
+     */
+    function layDuLieuSheetPromise_(tenSheet) {
+      return new Promise(function (resolve) {
+        google.script.run
+          .withSuccessHandler(function (kq) { resolve(kq); })
+          .withFailureHandler(function (err) { resolve({ error: err.message }); })
+          .dongBoMotSheet(tenSheet, null);
+      });
+    }
+
+    function moCanhBaoTonLau() {
+      document.getElementById('panelTraCuuHDN').style.display = 'none';
+      document.getElementById('panelNibot').style.display = 'none';
+      document.getElementById('panelTonLau').style.display = 'block';
+      quetTonKhoLauNgay_();
+      window.scrollTo({ top: document.getElementById('panelTonLau').offsetTop - 10, behavior: 'smooth' });
+    }
+
+    function dongCanhBaoTonLau() {
+      document.getElementById('panelTonLau').style.display = 'none';
+    }
+
+    async function quetTonKhoLauNgay_() {
+      const el = document.getElementById('ketQuaTonLau');
+      el.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:14px;">⏳ Đang đồng bộ và quét cả 3 năm (2026, 2025, 2024)...</div>';
+
+      const nam = ['2026', '2025', '2024'];
+      let tatCa = [];
+      let loiSheet = [];
+
+      for (let i = 0; i < nam.length; i++) {
+        const kq = await layDuLieuSheetPromise_(nam[i]);
+        if (kq && kq.error) {
+          loiSheet.push(nam[i] + ': ' + kq.error);
+          continue;
+        }
+        if (kq && kq.data && kq.data.chuaXuat) {
+          kq.data.chuaXuat.forEach(function (sp) {
+            const soNgay = tinhSoNgayTuNgay_(sp.ngayNK);
+            if (soNgay !== null && soNgay > 365) {
+              tatCa.push({
+                moTa: sp.moTa, tenSheet: nam[i], ngayNK: sp.ngayNK, soNgay: soNgay,
+                tonKho: sp.tonKho, tonKhoKhaDung: (sp.tonKhoKhaDung !== undefined ? sp.tonKhoKhaDung : sp.tonKho),
+                ncc: sp.ncc, soHDNhap: sp.soHDNhap, dvt: sp.dvt
+              });
+            }
+          });
+        }
+      }
+
+      tatCa.sort(function (a, b) { return b.soNgay - a.soNgay; });
+
+      if (tatCa.length === 0) {
+        el.innerHTML = (loiSheet.length ? '<div class="empty-msg" style="color:#c5221f;">⚠️ Lỗi khi quét: ' + loiSheet.join(' | ') + '</div>' : '') +
+          '<div class="empty-msg"><span class="icon">✅</span>Không có sản phẩm nào tồn kho quá 1 năm chưa xuất hoá đơn. Rất tốt!</div>';
+        return;
+      }
+
+      let html = '<div style="font-size:13px; font-weight:700; color:#b06000; margin-bottom:10px;">' +
+        'Tìm thấy ' + tatCa.length + ' sản phẩm tồn kho quá 1 năm chưa xuất hoá đơn (sắp xếp tồn lâu nhất trước):' +
+      '</div>';
+
+      tatCa.forEach(function (it) {
+        const critical = it.soNgay > 730;
+        html += '<div class="old-stock-row' + (critical ? ' critical' : '') + '">' +
+          '<div class="title">' + (critical ? '⚠️' : '⏰') + ' ' + it.moTa + '</div>' +
+          '<div class="meta">' +
+            '<span>Sheet: <b>' + it.tenSheet + '</b></span>' +
+            '<span>Ngày nhập: <b>' + (it.ngayNK || '—') + '</b></span>' +
+            '<span>Đã tồn: <b style="color:' + (critical ? '#c5221f' : '#b06000') + ';">' + it.soNgay + ' ngày (~' + (it.soNgay / 365).toFixed(1) + ' năm)</b></span>' +
+            '<span>Tồn kho: <b>' + formatSo(it.tonKho) + ' ' + (it.dvt || '') + '</b></span>' +
+            '<span>NCC: ' + (it.ncc || '—') + '</span>' +
+            '<span>Số HĐ nhập: ' + (it.soHDNhap || '—') + '</span>' +
+          '</div>' +
+        '</div>';
+      });
+
+      if (loiSheet.length) {
+        html += '<div class="empty-msg" style="color:#c5221f; padding:10px;">⚠️ Lỗi khi quét: ' + loiSheet.join(' | ') + '</div>';
+      }
+
+      el.innerHTML = html;
+    }
+
+    /**
+     * ===== ĐỐI CHIẾU HOÁ ĐƠN ĐẦU VÀO TỪ NIBOT =====
+     * Gọi kiemTraThieuHDDauVaoNIBOT() bên server: đọc trực tiếp Google Sheet
+     * NIBOT, so khớp Số HĐ với cột "Số HĐ nhập" của đúng sheet năm tương
+     * ứng, liệt kê hoá đơn còn thiếu kèm gợi ý chi tiết mặt hàng (nếu tìm
+     * được). Chỉ so khớp theo SỐ HĐ (không so tên NCC) nên đây LÀ CẢNH BÁO
+     * để tự kiểm tra, không phải kết luận chắc chắn 100%. Người dùng có
+     * thể sửa từng dòng mặt hàng (Mô tả/ĐVT/SL/Giá nhập/VAT) hoặc
+     * thêm/xoá dòng trước khi bấm "Xác nhận ghi" - lúc đó mới thực sự ghi
+     * vào đúng sheet năm.
+     */
+    let danhSachThieuNibot = [];
+
+    function moDoiChieuNibot() {
+      document.getElementById('panelTraCuuHDN').style.display = 'none';
+      document.getElementById('panelTonLau').style.display = 'none';
+      document.getElementById('panelNibot').style.display = 'block';
+      quetNibot_();
+      window.scrollTo({ top: document.getElementById('panelNibot').offsetTop - 10, behavior: 'smooth' });
+    }
+
+    function dongDoiChieuNibot() {
+      document.getElementById('panelNibot').style.display = 'none';
+    }
+
+    function quetNibot_() {
+      const el = document.getElementById('ketQuaNibot');
+      el.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:14px;">⏳ Đang đọc NIBOT và đối chiếu với 3 sheet năm...</div>';
+
+      google.script.run.withSuccessHandler(function (kq) {
+        if (kq.error) {
+          el.innerHTML = '<div class="empty-msg" style="color:#c5221f;">⚠️ Lỗi: ' + kq.error + '</div>';
+          return;
+        }
+        danhSachThieuNibot = kq.danhSachThieu || [];
+        renderKetQuaNibot_(kq);
+      }).withFailureHandler(function (err) {
+        el.innerHTML = '<div class="empty-msg" style="color:#c5221f;">⚠️ Lỗi: ' + err.message + '</div>';
+      }).kiemTraThieuHDDauVaoNIBOT();
+    }
+
+    function renderKetQuaNibot_(kq) {
+      const el = document.getElementById('ketQuaNibot');
+      const list = danhSachThieuNibot;
+
+      let thongKeHtml = '<div style="font-size:12.5px; color:var(--text-muted); margin-bottom:8px;">' +
+        'Nguồn: <b>' + (kq.tenFileNibot || 'NIBOT') + '</b> | Đọc lúc: ' + kq.ngayDoc + '</div>';
+
+      const tk = kq.thongKeTheoNam || {};
+      let tkRows = '';
+      Object.keys(tk).forEach(function (nam) {
+        tkRows += '<span style="display:inline-block; margin-right:14px;">• <b>' + nam + ':</b> ' +
+          tk[nam].tongSoHDNibot + ' HĐ NIBOT, thiếu <b style="color:#c5221f;">' + tk[nam].soThieu + '</b></span>';
+      });
+      thongKeHtml += '<div class="card" style="background:#eef1ff; border:1px solid #d7dcff; padding:10px 12px; margin-bottom:10px; font-size:12.5px;">' + tkRows + '</div>';
+
+      if (list.length === 0) {
+        el.innerHTML = thongKeHtml + '<div class="empty-msg"><span class="icon">✅</span>Không có hoá đơn nào bị thiếu. Đã khớp đầy đủ với NIBOT!</div>';
+        return;
+      }
+
+      let html = thongKeHtml + '<div style="font-size:13px; font-weight:700; color:#b06000; margin-bottom:10px;">' +
+        'Tìm thấy ' + list.length + ' hoá đơn có trong NIBOT nhưng CHƯA có trong Sheet ' +
+        '(chỉ so khớp theo Số HĐ - vui lòng kiểm tra kỹ NCC/mặt hàng trước khi ghi):' +
+      '</div>';
+
+      list.forEach(function (hd, idx) {
+        const rows = hd.dongHang && hd.dongHang.length > 0 ? hd.dongHang : [{ moTa: '', dvt: '', sl: '', giaNhap: '', vat: 8 }];
+        hd.dongHang = rows; // đồng bộ lại để themDongNibot_ dùng đúng mảng
+        let rowsHtml = '';
+        rows.forEach(function (d, ridx) { rowsHtml += renderDongNibot_(idx, ridx, d); });
+
+        html += '<div class="card" id="nibot-card-' + idx + '" style="padding:13px; margin-bottom:10px;">' +
+          '<div style="font-weight:800; font-size:14px; color:var(--brand-navy2); margin-bottom:6px;">' +
+            '📄 Số HĐ: ' + hd.so + (hd.kyHieu ? ' (KH: ' + hd.kyHieu + ')' : '') +
+            ' <span class="badge badge-white">Sheet: ' + hd.namSheet + '</span>' +
+          '</div>' +
+          '<div style="font-size:12.5px; color:var(--text-muted); margin-bottom:6px;">' +
+            'NCC: <b>' + hd.ncc + '</b> | Ngày: ' + hd.ngay + '<br>' +
+            'Tiền chưa thuế: ' + formatSo(hd.tienChuaThue) + ' | Tiền thuế: ' + formatSo(hd.tienThue) + ' | Tổng TT: <b>' + formatSo(hd.tienThanhToan) + '</b>' +
+          '</div>' +
+          '<div id="nibot-rows-' + idx + '">' + rowsHtml + '</div>' +
+          '<button class="btn-ghost" style="margin-top:6px;" onclick="themDongNibot_(' + idx + ')">➕ Thêm dòng mặt hàng</button>' +
+          '<button class="btn-secondary" style="margin-top:8px;" onclick="xacNhanGhiNibot_(' + idx + ')">✅ Xác nhận ghi vào sheet ' + hd.namSheet + '</button>' +
+        '</div>';
+      });
+
+      el.innerHTML = html;
+    }
+
+    function renderDongNibot_(idx, ridx, d) {
+      return '<div class="cart-row" id="nibot-row-' + idx + '-' + ridx + '">' +
+        '<div class="cart-row-title">' +
+          '<span>Dòng ' + (ridx + 1) + '</span>' +
+          '<span class="x-remove" onclick="xoaDongNibot_(' + idx + ',' + ridx + ')">✕</span>' +
+        '</div>' +
+        '<div class="cart-row-fields">' +
+          '<input type="text" placeholder="Mô tả sản phẩm" value="' + (d.moTa || '').replace(/"/g, '&quot;') + '" style="flex:1; min-width:140px;" data-field="moTa">' +
+          '<input type="text" placeholder="ĐVT" value="' + (d.dvt || '') + '" style="width:60px;" data-field="dvt">' +
+          '<input type="number" placeholder="SL" value="' + (d.sl || '') + '" style="width:70px;" data-field="sl">' +
+          '<input type="text" placeholder="Giá nhập" value="' + (d.giaNhap || '') + '" style="width:90px;" data-field="giaNhap">' +
+          '<select data-field="vat" style="width:70px;">' +
+            '<option value="0" ' + (Number(d.vat) === 0 ? 'selected' : '') + '>0%</option>' +
+            '<option value="8" ' + (Number(d.vat) === 8 ? 'selected' : '') + '>8%</option>' +
+            '<option value="10" ' + (Number(d.vat) === 10 ? 'selected' : '') + '>10%</option>' +
+          '</select>' +
+        '</div>' +
+      '</div>';
+    }
+
+    function themDongNibot_(idx) {
+      const hd = danhSachThieuNibot[idx];
+      hd.dongHang.push({ moTa: '', dvt: '', sl: '', giaNhap: '', vat: 8 });
+      const wrap = document.getElementById('nibot-rows-' + idx);
+      wrap.insertAdjacentHTML('beforeend', renderDongNibot_(idx, hd.dongHang.length - 1, hd.dongHang[hd.dongHang.length - 1]));
+    }
+
+    function xoaDongNibot_(idx, ridx) {
+      const el = document.getElementById('nibot-row-' + idx + '-' + ridx);
+      if (el) el.remove();
+    }
+
+    function xacNhanGhiNibot_(idx) {
+      const hd = danhSachThieuNibot[idx];
+      const wrap = document.getElementById('nibot-rows-' + idx);
+      const rowDivs = wrap.querySelectorAll('.cart-row');
+
+      const danhSachDong = [];
+      rowDivs.forEach(function (rowDiv) {
+        const moTa = rowDiv.querySelector('[data-field="moTa"]').value.trim();
+        const dvt = rowDiv.querySelector('[data-field="dvt"]').value.trim();
+        const sl = Number(rowDiv.querySelector('[data-field="sl"]').value) || 0;
+        const giaNhap = Number(String(rowDiv.querySelector('[data-field="giaNhap"]').value).replace(/\D/g, '')) || 0;
+        const vat = Number(rowDiv.querySelector('[data-field="vat"]').value) || 0;
+        if (moTa && sl > 0) danhSachDong.push({ moTa: moTa, dvt: dvt, sl: sl, giaNhap: giaNhap, vat: vat });
+      });
+
+      if (danhSachDong.length === 0) {
+        alert('Vui lòng nhập ít nhất 1 dòng hợp lệ (có Mô tả và Số lượng > 0) trước khi xác nhận.');
+        return;
+      }
+      if (!confirm('Xác nhận ghi hoá đơn số ' + hd.so + ' (' + danhSachDong.length + ' dòng) vào sheet ' + hd.namSheet + '?')) return;
+
+      const thongTinHD = {
+        namSheet: hd.namSheet, kyHieu: hd.kyHieu, so: hd.so, ncc: hd.ncc, nccGoc: hd.nccGoc,
+        ngay: hd.ngay, tienChuaThue: hd.tienChuaThue, tienThue: hd.tienThue, tienThanhToan: hd.tienThanhToan
+      };
+
+      google.script.run.withSuccessHandler(function (kq) {
+        if (kq.error) { alert('Lỗi: ' + kq.error); return; }
+        alert('✅ Đã ghi ' + kq.soDongDaGhi + ' dòng vào sheet ' + kq.namSheet + '.');
+        const card = document.getElementById('nibot-card-' + idx);
+        if (card) card.remove();
+      }).withFailureHandler(function (err) {
+        alert('Lỗi: ' + err.message);
+      }).ghiHoaDonThieuVaoSheet(thongTinHD, danhSachDong);
+    }
+
+    function suaHoaDonNhap(maHD) {
+      google.script.run.withSuccessHandler(function (kq) {
+        if (kq.error) { alert('Lỗi: ' + kq.error); return; }
+
+        maHDDangSua = kq.maHD;
+        document.getElementById('tenKH').value = kq.tenKH;
+        document.getElementById('dangSuaBanner').style.display = 'flex';
+        document.getElementById('dangSuaText').textContent = 'Đang sửa hoá đơn: ' + kq.maHD;
+        document.getElementById('btnTaoHD').innerHTML = '💾 Cập nhật hoá đơn nháp (<span id="soLuongChon">0</span> sản phẩm)';
+
+        daChon = {};
+        (kq.danhSachDong || []).forEach(function (dong, i) {
+          daChon['edit_' + i] = {
+            moTa: dong.moTa, dvt: dong.dvt, soLuong: Number(dong.soLuong), giaXuat: Number(dong.giaXuat),
+            vatBan: Number(dong.vatBan) || 0, giaNhap: 0, tonKho: dong.tonKho, soHDNhap: dong.soHDNhap,
+            ncc: dong.ncc, ngayNK: dong.ngayNK, tongTienHDNhap: dong.tongTienHDNhap, tenSheet: dong.tenSheet
+          };
+        });
+
+        dongTraCuuHDN();
+        capNhatThanhTBar();
+
+        // CẢNH BÁO NGAY nếu hoá đơn nháp CŨ (lập từ trước) đã bị lỡ gộp
+        // nhiều mức thuế suất VAT khác nhau (dữ liệu lỗi từ trước khi có
+        // chốt chặn này) - để người dùng biết mà tách lại cho đúng.
+        const vatSetCu = {};
+        (kq.danhSachDong || []).forEach(function (dong) { vatSetCu[Number(dong.vatBan) || 0] = true; });
+        const cacMucVATCu = Object.keys(vatSetCu);
+        if (cacMucVATCu.length > 1) {
+          alert('🚫 CẢNH BÁO: Hoá đơn nháp "' + kq.maHD + '" ĐANG BỊ GỘP NHIỀU MỨC THUẾ SUẤT VAT KHÁC NHAU (' + cacMucVATCu.join('%, ') + '%)!\n\n' +
+            '⚠️ Mỗi hoá đơn CHỈ được xuất DUY NHẤT 1 mức thuế suất (toàn bộ 8% hoặc toàn bộ 10%).\n\n' +
+            'Vui lòng xoá bớt các mặt hàng khác thuế suất trong giỏ hàng bên dưới, hoặc tách thành nhiều hoá đơn riêng theo từng mức thuế suất trước khi lưu lại.');
+        }
+
+        // Đồng bộ lại sheet đang chọn, LOẠI TRỪ chính hoá đơn đang sửa khỏi
+        // phép tính tồn kho khả dụng, để không tự chặn khi muốn tăng SL.
+        const tenSheetHienTai = document.getElementById('sheetSelect').value;
+        dongBoMotSheetTuServer(tenSheetHienTai, true, false, maHDDangSua);
+
+        window.scrollTo({ top: document.getElementById('panelGioHang').offsetTop - 10, behavior: 'smooth' });
+      }).withFailureHandler(function (err) {
+        alert('Lỗi: ' + err.message);
+      }).layChiTietHoaDonNhap(maHD);
+    }
+
+    function huySua() {
+      maHDDangSua = null;
+      daChon = {};
+      document.getElementById('dangSuaBanner').style.display = 'none';
+      document.getElementById('btnTaoHD').innerHTML = '✅ Tạo hoá đơn nháp (<span id="soLuongChon">0</span> sản phẩm)';
+      document.getElementById('tenKH').value = '';
+      capNhatThanhTBar();
+
+      // Tải lại dữ liệu sheet KHÔNG loại trừ hoá đơn nào nữa (về trạng thái bình thường)
+      const tenSheetHienTai = document.getElementById('sheetSelect').value;
+      dongBoMotSheetTuServer(tenSheetHienTai, true, false);
+    }
+
+    function doiChieuGmail() {
+      const tenSheet = document.getElementById('sheetSelect').value;
+      const el = document.getElementById('ketQua');
+      const year = tenSheet.replace(/\D/g, "");
+      el.innerHTML = SKELETON_HTML;
+
+      google.script.run.withSuccessHandler(function (kq) {
+        if (kq.error) {
+          el.innerHTML = '<div class="empty-msg"><span class="icon">⚠️</span>Lỗi: ' + kq.error + '</div>';
+          return;
+        }
+
+        const list = kq.gmailInvoices || [];
+        if (list.length === 0) {
+          el.innerHTML = '<div style="margin-bottom: 12px; display: flex; gap: 8px;">' +
+            '<button class="btn-ghost" onclick="render()" style="width: auto; flex: 1;">' +
+              '⬅ Quay lại HĐ đầu vào' +
+            '</button>' +
+          '</div>' +
+          '<div class="empty-msg"><span class="icon">📭</span>Không tìm thấy email hoá đơn nào trong Gmail của năm ' + year + '</div>';
+          return;
+        }
+
+        let chuaNhapHtml = '';
+        let daNhapHtml = '';
+        let countChuaNhap = 0;
+        let countDaNhap = 0;
+
+        list.forEach(function (inv) {
+          const invCard = '<div style="display: flex; justify-content: space-between; font-size: 13px; background: #fff; border: 1px solid var(--border); padding: 9px 11px; border-radius: 8px; margin-bottom: 6px; flex-wrap: wrap; gap: 6px; text-align: left;">' +
+            '<div>' +
+              '🏢 <b>' + inv.ncc + '</b><br>' +
+              '<span style="color:var(--text-muted);">Số HĐ: ' + inv.soHD + ' | Ngày: ' + (inv.ngay || '—') + '</span>' +
+            '</div>' +
+            '<div style="align-self: center;">' +
+              (inv.daNhap ?
+                '<span class="badge" style="background:#e6f4ea; color:#137333; margin-left: 0;">Đã vào Sheet</span>' :
+                '<span class="badge" style="background:#fce8e6; color:#c5221f; margin-left: 0;">⚠️ CHƯA VÀO SHEET</span>'
+              ) +
+            '</div>' +
+          '</div>';
+
+          if (inv.daNhap) {
+            daNhapHtml += invCard;
+            countDaNhap++;
+          } else {
+            chuaNhapHtml += invCard;
+            countChuaNhap++;
+          }
+        });
+
+        let reportHtml = '<div style="margin-bottom: 12px; display: flex; gap: 8px;">' +
+          '<button class="btn-ghost" onclick="render()" style="width: auto; flex: 1;">' +
+            '⬅ Quay lại HĐ đầu vào' +
+          '</button>' +
+        '</div>' +
+        '<div class="card" style="background: #fdeeec; border: 1px solid #f5c2c7;">' +
+          '<div style="font-weight:800; color:#c5221f; font-size:14px; margin-bottom: 8px;">' +
+            '⚠️ CẢNH BÁO: CHƯA VÀO SHEET (' + countChuaNhap + ' hoá đơn)' +
+          '</div>' +
+          (chuaNhapHtml || '<div style="font-size:13px; color:var(--text-muted);">Tất cả hóa đơn trong Gmail đã được nhập đầy đủ vào Sheet! 🎉</div>') +
+        '</div>' +
+        '<div class="card" style="background: #eaf7ee; border: 1px solid #c3e6cb;">' +
+          '<div style="font-weight:800; color:#137333; font-size:14px; margin-bottom: 8px;">' +
+            '✅ ĐÃ VÀO SHEET (' + countDaNhap + ' hoá đơn)' +
+          '</div>' +
+          daNhapHtml +
+        '</div>';
+
+        el.innerHTML = reportHtml;
+      }).withFailureHandler(function (err) {
+        el.innerHTML = '<div class="empty-msg"><span class="icon">⚠️</span>Lỗi: ' + err.message + '</div>';
+      }).doiChieuGmail(tenSheet);
+    }
+
+    function toggleInvoice(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+      }
+    }
+
+    function formatSo(n) {
+      if (!n) return '0';
+      return Math.round(Number(n)).toLocaleString('vi-VN');
+    }
+  </script>
+</body>
+</html>
