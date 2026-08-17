@@ -22,22 +22,20 @@ iframe.active { display:block; }
 
 <div id="tabBar">
   <div class="tab" data-id="1" onclick="chuyen(1,this)">🧾 Hoá đơn</div>
-  <div class="tab" data-id="2" onclick="chuyen(2,this)">🧾 đồng bộ</div>
-  <div class="tab" data-id="3" onclick="chuyen(3,this)">⚡ Check giá</div>
-  <div class="tab" data-id="4" onclick="chuyen(4,this)">💰 Chi phí</div>
-  <div class="tab active" data-id="5" onclick="chuyen(5,this)">📦 XNK 2026</div>
+  <div class="tab" data-id="3" onclick="chuyen(2,this)">⚡ Check giá</div>
+  <div class="tab" data-id="4" onclick="chuyen(3,this)">💰 Chi phí</div>
+  <div class="tab active" data-id="5" onclick="chuyen(4,this)">📦 XNK 2026</div>
 </div>
 
 <script>
 const urls = {
   1: "https://script.google.com/macros/s/AKfycbwPtQ4tvkQbxoVuyX1nSJJIZWU8aHS8jEkBV5qdr8_6ArAL9eQAb2609AUps0ydUg_Gdw/exec",
-  2: "https://script.google.com/macros/s/AKfycbycgripFRUNQ1yPjX3Oc6kazxlXOU1ysLG0SyXeXV4PbtIw0ue98aG8_yqdlT6YHW26/exec",
-  3: "https://script.google.com/macros/s/AKfycbyNEVN12cJ4Dbqm9fTxzVxxKGNRRx1d6trImhoq8sG7gtuHNJ8ByXE26tT-VGJx0lvEqw/exec",
-  4: "https://script.google.com/macros/s/AKfycbx3hYgvOz31LSAuih7gWl8rMfkQYccGALL_ftXLKO0J10iGJA5AdqZ9hZ9Ab5AUVVTolQ/exec",
-  5: "https://script.google.com/macros/s/AKfycbxB7pDBTg5Q8hULilXgrptpbL_s_JPguN2S2UBeDyeL_4d0d7_iQdBWhvBXW1bfgQce6w/exec"
+  2: "https://script.google.com/macros/s/AKfycbyNEVN12cJ4Dbqm9fTxzVxxKGNRRx1d6trImhoq8sG7gtuHNJ8ByXE26tT-VGJx0lvEqw/exec",
+  3: "https://script.google.com/macros/s/AKfycbx3hYgvOz31LSAuih7gWl8rMfkQYccGALL_ftXLKO0J10iGJA5AdqZ9hZ9Ab5AUVVTolQ/exec",
+  4: "https://script.google.com/macros/s/AKfycbxB7pDBTg5Q8hULilXgrptpbL_s_JPguN2S2UBeDyeL_4d0d7_iQdBWhvBXW1bfgQce6w/exec"
 }; 
 
-const DEFAULT_TAB = 5; // XNK
+const DEFAULT_TAB = 4; // XNK
 const loadedFrames = {}; // cache iframe đã tạo, không load lại
 const frameWrap = document.getElementById('frameWrap');
 const loadingEl = document.getElementById('loading');
