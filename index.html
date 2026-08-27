@@ -58,7 +58,6 @@ iframe.active { display:block; }
 
 <script>
 /* ================== KHÓA MẬT KHẨU ================== */
-// Hash SHA-256 của mật khẩu (không lưu mật khẩu dạng chữ thô trong code)
 const PW_HASH = "07377aedf539524f992a41da79b5205941b0b3315c429eaa714b3f5e742ebe7a";
 
 async function sha256(str) {
@@ -71,7 +70,7 @@ async function checkPw() {
   const hash = await sha256(val);
   if (hash === PW_HASH) {
     document.getElementById('lockScreen').remove();
-    sessionStorage.setItem('unlocked', '1'); // chỉ nhớ trong phiên trình duyệt hiện tại (đóng tab là mất)
+    sessionStorage.setItem('unlocked', '1');
   } else {
     document.getElementById('pwErr').textContent = "Sai mật khẩu, vui lòng thử lại";
     document.getElementById('pwInput').value = '';
@@ -79,12 +78,10 @@ async function checkPw() {
   }
 }
 
-// Cho phép nhấn Enter để xác nhận
 document.getElementById('pwInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') checkPw();
 });
 
-// Nếu đã unlock trong phiên này rồi thì bỏ qua màn hình khóa
 if (sessionStorage.getItem('unlocked') === '1') {
   document.getElementById('lockScreen').remove();
 } else {
@@ -95,7 +92,7 @@ if (sessionStorage.getItem('unlocked') === '1') {
 /* ================== HẾT PHẦN KHÓA MẬT KHẨU ================== */
 
 
-/* ================== NỘI DUNG GỐC (không đổi) ================== */
+/* ================== NỘI DUNG CHÍNH (đã tối ưu tốc độ) ================== */
 const urls = {
   1: "https://script.google.com/macros/s/AKfycbzo7PKfTPnQwMYnz_s5O2iK7fSh44uJL2gn8SUwEI5SgN_8wPusJfsw62K5WPlyHjfV/exec",
   2: "https://script.google.com/macros/s/AKfycbwPtQ4tvkQbxoVuyX1nSJJIZWU8aHS8jEkBV5qdr8_6ArAL9eQAb2609AUps0ydUg_Gdw/exec",
@@ -103,23 +100,29 @@ const urls = {
   4: "https://script.google.com/macros/s/AKfycbxSwogdbgvvgGdYkMRDIg87zTR5xFY5Jg3WxZJ43MOYFrRbh9ezCf7JCp4p-JnFZpqsQQ/exec",
   5: "https://script.google.com/macros/s/AKfycbx3hYgvOz31LSAuih7gWl8rMfkQYccGALL_ftXLKO0J10iGJA5AdqZ9hZ9Ab5AUVVTolQ/exec",
   6: "https://script.google.com/macros/s/AKfycbxB7pDBTg5Q8hULilXgrptpbL_s_JPguN2S2UBeDyeL_4d0d7_iQdBWhvBXW1bfgQce6w/exec"
-}; 
+};
 
 const DEFAULT_TAB = 6; // XNK
-const loadedFrames = {}; // cache iframe đã tạo, không load lại
+const loadedFrames = {};
 const frameWrap = document.getElementById('frameWrap');
 const loadingEl = document.getElementById('loading');
 
-function getOrCreateFrame(id) {
-  if (loadedFrames[id]) return loadedFrames[id];
+let preloadStarted = false;
+let preloadQueue = [];
+
+function getOrCreateFrame(id, onFirstLoad) {
+  if (loadedFrames[id]) {
+    if (onFirstLoad) onFirstLoad(); // đã tải rồi, gọi callback ngay
+    return loadedFrames[id];
+  }
 
   const iframe = document.createElement('iframe');
   iframe.src = urls[id];
   iframe.onload = function () {
-    // chỉ ẩn loading nếu đây đúng là tab đang được xem
     if (String(frameWrap.dataset.current) === String(id)) {
       loadingEl.style.display = 'none';
     }
+    if (onFirstLoad) onFirstLoad();
   };
   frameWrap.appendChild(iframe);
   loadedFrames[id] = iframe;
@@ -127,14 +130,12 @@ function getOrCreateFrame(id) {
 }
 
 function chuyen(id, el) {
-  // đổi trạng thái tab active
   var tabs = document.querySelectorAll('.tab');
   for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
   el.classList.add('active');
 
   frameWrap.dataset.current = id;
 
-  // ẩn hết iframe hiện có
   var frames = document.querySelectorAll('#frameWrap iframe');
   for (var j = 0; j < frames.length; j++) frames[j].classList.remove('active');
 
@@ -142,28 +143,42 @@ function chuyen(id, el) {
   var iframe = getOrCreateFrame(id);
   iframe.classList.add('active');
 
-  // chỉ hiện "Đang tải..." nếu đây là lần đầu load tab này
   loadingEl.style.display = alreadyLoaded ? 'none' : 'flex';
 }
 
-// Load tab mặc định ngay khi mở app
-window.addEventListener('DOMContentLoaded', function () {
-  chuyen(DEFAULT_TAB, document.querySelector('.tab[data-id="' + DEFAULT_TAB + '"]'));
+// Tải lần lượt TỪNG tab một (không tải song song) để không tranh băng thông/connection
+// với tab người dùng đang xem hoặc với nhau.
+function preloadNext() {
+  if (preloadQueue.length === 0) return;
+  var id = preloadQueue.shift();
+  getOrCreateFrame(id, function () {
+    setTimeout(preloadNext, 600); // đợi 1 chút rồi mới tải tab kế tiếp
+  });
+}
 
-  // Sau khi tab mặc định load xong, âm thầm preload các tab còn lại lúc rảnh
-  // để khi bấm qua sẽ hiện ngay lập tức, không phải chờ cold-start
-  function preloadOthers() {
-    Object.keys(urls).forEach(function (id) {
-      if (String(id) !== String(DEFAULT_TAB)) getOrCreateFrame(id);
-    });
-  }
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(preloadOthers, { timeout: 4000 });
-  } else {
-    setTimeout(preloadOthers, 2500);
-  }
+function startPreloadOthers() {
+  if (preloadStarted) return;
+  preloadStarted = true;
+  preloadQueue = Object.keys(urls).filter(function (id) {
+    return String(id) !== String(DEFAULT_TAB);
+  });
+  setTimeout(preloadNext, 800); // chờ tab mặc định "thở" xong rồi mới bắt đầu
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  var defaultTabEl = document.querySelector('.tab[data-id="' + DEFAULT_TAB + '"]');
+  chuyen(DEFAULT_TAB, defaultTabEl);
+
+  // CHỈ bắt đầu preload các tab khác SAU KHI tab mặc định đã tải xong hẳn,
+  // thay vì theo hẹn giờ cố định (nguyên nhân chính gây treo trước đây).
+  var checkDefaultLoaded = setInterval(function () {
+    if (loadedFrames[DEFAULT_TAB] && loadingEl.style.display === 'none') {
+      clearInterval(checkDefaultLoaded);
+      startPreloadOthers();
+    }
+  }, 300);
 });
-/* ================== HẾT NỘI DUNG GỐC ================== */
+/* ================== HẾT NỘI DUNG CHÍNH ================== */
 </script>
 
 </body>
