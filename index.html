@@ -50,6 +50,7 @@ iframe.active { display:block; }
 <div id="tabBar">
   <div class="tab" data-id="1" onclick="chuyen(1,this)">🚢 CT NHẬP KHẨU</div>
   <div class="tab" data-id="2" onclick="chuyen(2,this)">🧾 Hoá đơn</div>
+  <div class="tab" data-id="7" onclick="chuyen(7,this)">👤 HR</div>
   <div class="tab" data-id="3" onclick="chuyen(3,this)">⚡ Check giá</div>
   <div class="tab" data-id="4" onclick="chuyen(4,this)"> 📲 NAME CARD</div>
   <div class="tab" data-id="5" onclick="chuyen(5,this)">💰🏷️ Chi phí & TEM</div>
@@ -58,7 +59,7 @@ iframe.active { display:block; }
 
 <script>
 /* ================== KHÓA MẬT KHẨU ================== */
-const PW_HASH = "07377aedf539524f992a41da79b5205941b0b3315c429eaa714b3f5e742ebe7a";
+const PW_HASH = "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b";
 
 async function sha256(str) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
@@ -99,7 +100,8 @@ const urls = {
   3: "https://script.google.com/macros/s/AKfycbyNEVN12cJ4Dbqm9fTxzVxxKGNRRx1d6trImhoq8sG7gtuHNJ8ByXE26tT-VGJx0lvEqw/exec",
   4: "https://script.google.com/macros/s/AKfycbxSwogdbgvvgGdYkMRDIg87zTR5xFY5Jg3WxZJ43MOYFrRbh9ezCf7JCp4p-JnFZpqsQQ/exec",
   5: "https://script.google.com/macros/s/AKfycbx3hYgvOz31LSAuih7gWl8rMfkQYccGALL_ftXLKO0J10iGJA5AdqZ9hZ9Ab5AUVVTolQ/exec",
-  6: "https://script.google.com/macros/s/AKfycbxB7pDBTg5Q8hULilXgrptpbL_s_JPguN2S2UBeDyeL_4d0d7_iQdBWhvBXW1bfgQce6w/exec"
+  6: "https://script.google.com/macros/s/AKfycbxB7pDBTg5Q8hULilXgrptpbL_s_JPguN2S2UBeDyeL_4d0d7_iQdBWhvBXW1bfgQce6w/exec",
+  7: "https://script.google.com/macros/s/AKfycbw81lq6uGFkwTjpmXMLroasIA8v9Wiw9PoWkyXRtvZg_SASZKK4CjGxGfdQvwxHl_Y/exec"
 };
 
 const DEFAULT_TAB = 6; // XNK
